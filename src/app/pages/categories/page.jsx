@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import {getCategoryPage} from "@/services/serverFetch";
+import { getCategoryPage } from "@/services/serverFetch";
 
-const Category = () => {
+const CategoryPage = () => {
   const num = useState();
   useEffect(() => {
     getCategoryPage(1);
@@ -10,4 +10,4 @@ const Category = () => {
   return <div></div>;
 };
 
-export default Category;
+export default CategoryPage;
