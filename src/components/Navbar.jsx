@@ -8,49 +8,48 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ManageAccountsTwoToneIcon from "@mui/icons-material/ManageAccountsTwoTone";
 import Link from "next/link";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import {BE_URL} from "@/services/routeConfig";
 
 const links = [
   {
     id: "1",
     title: "Dashboard",
-    url: "/pages/dashboard",
+    url: "/dashboard",
     icon: <HomeOutlinedIcon />,
   },
   {
     id: "2",
     title: "Products",
-    url: "/pages/products",
+    url: "/products",
     icon: <Inventory2OutlinedIcon />,
   },
   {
     id: "3",
     title: "Categories",
-    url: "/pages/categories",
+    url: "/categories",
     icon: <SegmentOutlinedIcon />,
   },
   {
     id: "4",
     title: "Orders",
-    url: "/pages/orders",
+    url: "/orders",
     icon: <ReceiptLongOutlinedIcon />,
   },
   {
     id: "5",
     title: "Admins",
-    url: "/pages/admins",
+    url: "/admins",
     icon: <ManageAccountsTwoToneIcon />,
   },
   {
     id: "6",
     title: "Users",
-    url: "/pages/users",
+    url: "/users",
     icon: <PeopleOutlineOutlinedIcon />,
   },
   {
     id: "7",
     title: "Settings",
-    url: "/pages/settings",
+    url: "/settings",
     icon: <SettingsOutlinedIcon />,
   },
 ];
@@ -76,7 +75,7 @@ const links = [
 
 const NavBar = () => {
   return (
-    <div className=" mr-[30px] mt-[50px] flex h-full w-[300px] flex-col">
+    <nav className=" mr-[30px] mt-[50px] flex h-full w-[300px] flex-col">
       {links.map((item) => (
         <Link key={item.id} href={item.url}>
           <div
@@ -91,7 +90,7 @@ const NavBar = () => {
         </Link>
       ))}
       <Link
-        href={`${BE_URL}/api/v1/auth/logout`}
+        href={`${process.env.NEXT_PUBLIC_BE_URL}/api/v1/auth/logout`}
         className={
           "ml-[15px] flex items-center gap-[10px] rounded-[4px] " +
           "p-[10px] text-[18px] hover:bg-violet-300 hover:shadow-md"
@@ -100,7 +99,7 @@ const NavBar = () => {
         <LogoutOutlinedIcon />
         Log out
       </Link>
-    </div>
+    </nav>
   );
 };
 

@@ -1,77 +1,123 @@
 "use server";
 import { authCookieGetter } from "@/services/routeConfig";
 
-// Get page product
-// export const fetchPageProduct = async (q, page, size = 20) => {
-//   const authCookie = cookies().get("auth-token").value;
-//   if (!authCookie) {
-//     console.log("Can't Auth");
-//     return { totalProduct: 0, products: [] };
-//   }
-//
-//   const url = `http://localhost:8080/api/v1/product/page?page=${
-//     page - 1
-//   }&size=${size}&q=${q}`;
-//   const url2 = `http://localhost:8080/api/v1/product/total?size=${size}&q=${q}`;
-//   try {
-//     const fetchConfig = {
-//       method: "GET",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Cookie: `auth-token=${authCookie}`,
-//       },
-//       next: { revalidate: 3600 },
-//     };
-//     const productsPromise = fetch(url, fetchConfig);
-//     const totalPagePromise = fetch(url2, fetchConfig);
-//     const [totalProductResponse, productsResponse] = await Promise.all([
-//       totalPagePromise,
-//       productsPromise,
-//     ]);
-//     const totalPage = await totalProductResponse.json();
-//     const products = await productsResponse.json();
-//     return { totalPage: totalPage, products };
-//   } catch (error) {
-//     console.error("Error fetching data:", error);
-//     return { totalPage: 0, products: [] };
-//   }
-// };
-const getConfig = {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    Cookie: `auth-token=${
-      authCookieGetter() ? authCookieGetter() : console.log("UnAuthenticated")
-    }`,
-  },
-  next: { revalidate: 60 },
+const BASE_URL = `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product`;
+
+const getAuthHeader = () => {
+  const token = authCookieGetter();
+  if (!token) {
+    console.log("UnAuthenticated");
+    return {};
+  }
+  return { Cookie: `auth-token=${token}` };
 };
 
-export const fetchPageProduct = async (q, page, size = 20) => {
-  const baseURL = `http://localhost:8080/api/v1/product`;
+export const handleFetchError = (
+  err,
+  customMessage = "Error fetching data:",
+) => {
+  console.error(customMessage, err);
+  throw err;
+};
+
+export const fetchPageProduct = async (q, page, size, sortField, sortDir) => {
+  const url = `${BASE_URL}/page?page=${
+    page - 1
+  }&size=${size}&q=${q}&sortField=${sortField}&sortDir=${sortDir}`;
   try {
-    const [totalPage, products] = await Promise.all([
-      fetch(`${baseURL}/total?size=${size}&q=${q}`, getConfig).then((res) =>
-        res.json(),
-      ),
-      fetch(
-        `${baseURL}/page?page=${page - 1}&size=${size}&q=${q}`,
-        getConfig,
-      ).then((res) => res.json()),
-    ]);
-    return { totalPage, products };
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return { totalPage: 0, products: [] };
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      next: { revalidate: 60 },
+    });
+    return await res.json();
+  } catch (err) {
+    return handleFetchError(err);
   }
 };
 
 export const productConnectedEntities = async () => {
-  const url = "http://localhost:8080/api/v1/product/product-connected-entities";
-  return fetch(url, getConfig)
-    .then((promise) => promise.json())
-    .catch((err) => {
-      console.log("Error fetching category data", err);
-      return [];
+  const url = `${BASE_URL}/product-connected-entities`;
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      next: { revalidate: 60 },
     });
+    return await response.json();
+  } catch (err) {
+    return handleFetchError(err, "Error fetching category data");
+  }
+};
+
+export const sendDataToBackend = async (dto) => {
+  try {
+    const res = await fetch(`${BASE_URL}/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(dto),
+    });
+    return res.status === 200
+      ? { data: await res.text(), success: true, status: res.status }
+      : { success: false };
+  } catch (err) {
+    return handleFetchError(err, "Error when sending data to backend:");
+  }
+};
+
+export const sendUpdateDataToBackend = async (productId, dto) => {
+  try {
+    const res = await fetch(`${BASE_URL}/update?productId=${productId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(dto),
+    });
+    return res.ok
+      ? { data: await res.text(), success: true, status: res.status }
+      : { success: false };
+  } catch (err) {
+    return handleFetchError(err, "Error when sending update data to backend:");
+  }
+};
+
+export const getProductById = async (id) => {
+  try {
+    const response = await fetch(`${BASE_URL}/get?productId=${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+    });
+    return await response.json();
+  } catch (err) {
+    return handleFetchError(err, "Error fetching product data:");
+  }
+};
+
+export const deleteProduct = async (id) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+    });
+    return await response.text();
+  } catch (err) {
+    return handleFetchError(err, "Error when deleting product:");
+  }
 };

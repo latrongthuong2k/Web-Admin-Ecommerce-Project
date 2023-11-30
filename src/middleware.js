@@ -7,12 +7,13 @@ export const config = {
   ],
 };
 const protectPathRegex = [
-  /^\/pages\/dashboard(\/.*)?$/,
-  /^\/pages\/products(\/.*)?$/,
-  /^\/pages\/admins(\/.*)?$/,
-  /^\/pages\/users(\/.*)?$/,
-  /^\/pages\/categories(\/.*)?$/,
-  /^\/pages\/orders(\/.*)?$/,
+  /^\/dashboard(\/.*)?$/,
+  /^\/dashboard(\/.*)?$/,
+  /^\/products(\/.*)?$/,
+  /^\/admins(\/.*)?$/,
+  /^\/users(\/.*)?$/,
+  /^\/categories(\/.*)?$/,
+  /^\/orders(\/.*)?$/,
 ];
 const loginPath = "/auth/login";
 
@@ -26,7 +27,7 @@ export async function middleware(request) {
 
   if (isValid === true) {
     if (isLoginPath) {
-      return NextResponse.redirect(new URL("/pages/dashboard", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     } else if (isProtectedPath) {
       return NextResponse.next();
     }

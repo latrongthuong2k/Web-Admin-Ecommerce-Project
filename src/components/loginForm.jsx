@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import {TextField, Button, Container, Typography, FormControlLabel} from "@mui/material";
-import {Checkbox, Grid} from "@mui/joy";
-import Link from '@mui/material/Link';
+import { TextField, Button, Container, Typography } from "@mui/material";
+
 const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -10,32 +9,28 @@ const LoginForm = () => {
   const handleSubmit = async (event) => {
     console.log("Đã thử đăng nhập");
     event.preventDefault();
-    // try {
-    //   const response = await fetch(
-    //     BE_API_BASE_URL + "/api/v1/auth/authenticate",
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({ email, password }),
-    //     },
-    //   );
-    //
-    //   if (!response.ok) {
-    //     // Xử lý lỗi, ví dụ hiển thị thông báo lỗi
-    //     console.error("login failed:", response.statusText);
-    //     return;
-    //   }
-    //   const data = await response.json();
-    //   if (data.token) {
-    //     localStorage.setItem("accessToken", data.token);
-    //   } else {
-    //     console.error("login failed: no token received");
-    //   }
-    // } catch (error) {
-    //   console.error("login error:", error);
-    // }
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/auth/authenticate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        // Xử lý lỗi, ví dụ hiển thị thông báo lỗi
+        console.error("login failed:", response.statusText);
+        return;
+      }
+      window.location.reload();
+    } catch (error) {
+      console.error("login error:", error);
+    }
   };
 
   return (
@@ -79,18 +74,18 @@ const LoginForm = () => {
         >
           Sign In
         </Button>
-        <Grid container className={"mt-3 te"}>
-          <Grid item xs>
-            <Link href="#" variant="body2">
-              Forgot password?
-            </Link>
-          </Grid>
-          <Grid item>
-            <Link href="#" variant="body2">
-              {"Don't have an account? Sign Up"}
-            </Link>
-          </Grid>
-        </Grid>
+        {/*<Grid container className={"mt-3 te"}>*/}
+        {/*  <Grid item xs>*/}
+        {/*    <Link href="#" variant="body2">*/}
+        {/*      Forgot password?*/}
+        {/*    </Link>*/}
+        {/*  </Grid>*/}
+        {/*  <Grid item>*/}
+        {/*    <Link href="#" variant="body2">*/}
+        {/*      {"Don't have an account? Sign Up"}*/}
+        {/*    </Link>*/}
+        {/*  </Grid>*/}
+        {/*</Grid>*/}
       </form>
     </Container>
   );

@@ -1,7 +1,6 @@
 "use server";
 import { cookies } from "next/headers";
-import axios from "axios";
-import { authCookieGetter, BE_URL } from "./routeConfig";
+import { authCookieGetter } from "./routeConfig";
 
 // DASHBOARD SERVICE
 //--------------------------------------------
@@ -22,30 +21,6 @@ import { authCookieGetter, BE_URL } from "./routeConfig";
 // CATEGORY SERVICE
 //--------------------------------------------
 //   add
-export const getCategoryPage = (pageNum) => {
-  const url = new URL(
-    `http://localhost:8080/api/v1/category/page?page=${pageNum - 1}\``,
-  );
-
-  fetch(url, {
-    method: "GET",
-    credentials: "include",
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      // Xử lý dữ liệu phân trang nhận được từ server
-      console.log(data);
-    })
-    .catch((error) => {
-      // Xử lý lỗi ở đây
-      console.error("There was a problem with the fetch operation:", error);
-    });
-};
 //   edit
 //   delete todo: nhớ cho hiện modal hỏi lại
 //   update
@@ -83,11 +58,6 @@ export const getAuthConfig = (authCookie) => ({
     Cookie: `auth-token=${authCookie}`,
   },
 });
-export const AuthConfig = (authCookie) => ({
-  headers: {
-    Cookie: `auth-token=${authCookie}`,
-  },
-});
 
 export const validateToken = async () => {
   const authCookie = cookies().get("auth-token")?.value;
@@ -96,7 +66,7 @@ export const validateToken = async () => {
   }
   try {
     const response = await fetch(
-      `${BE_URL}/api/v2/auth/check-authentication`,
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v2/auth/check-authentication`,
       getAuthConfig(authCookie),
     );
     if (response.status !== 200) {
@@ -108,47 +78,103 @@ export const validateToken = async () => {
     return { isValid: false, error };
   }
 };
-export const uploadMultipleFilesNoId = async (formData) => {
-  // for (let [key, value] of formData.entries()) {
-  //   console.log(key, value);
-  // }
+// export const uploadMultipleFilesNoId = async (formData) => {
+//   try {
+//     const response = await fetch(
+//       `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images`,
+//       {
+//         method: "POST",
+//         headers: {
+//           Cookie: `auth-token=${
+//             authCookieGetter() ? authCookieGetter() : "UnAuthenticated"
+//           }`,
+//         },
+//         body: formData,
+//         // next: { revalidate: 60 },
+//       },
+//     );
+//     if (!response.ok) {
+//       throw new Error(`Upload failed with status ${response.status}`);
+//     }
+//
+//     // Chỉ trả về thông tin cần thiết
+//     return { success: true, status: response.status };
+//   } catch (e) {
+//     console.log("Có lỗi: " + e.message);
+//     // Trả về đối tượng lỗi đơn giản hơn
+//     throw { message: e.message, type: "uploadError" };
+//   }
+// };
+const getDefaultOptions = (method, body = null) => {
+  const authCookie = authCookieGetter()
+    ? authCookieGetter()
+    : "UnAuthenticated";
+  const headers = {
+    "Content-Type": "application/json",
+    Cookie: `auth-token=${authCookie}`,
+  };
+
+  // Không set Content-Type là application/json nếu body là FormData
+  if (body instanceof FormData) {
+    delete headers["Content-Type"];
+  }
+
+  const options = {
+    method: method,
+    headers: headers,
+    credentials: "include",
+  };
+
+  if (body) {
+    options.body = body instanceof FormData ? body : JSON.stringify(body);
+  }
+
+  return options;
+};
+export const uploadMultipleFiles = async (productId, formData) => {
+  console.log(productId, formData);
   try {
-    const response = await fetch(`${BE_URL}/api/v1/product/product-images`, {
-      method: "POST",
-      headers: {
-        // "Content-Type": "multipart/form-data",
-        Cookie: `auth-token=${
-          authCookieGetter()
-            ? authCookieGetter()
-            : console.log("UnAuthenticated")
-        }`,
-      },
-      body: formData,
-      // next: { revalidate: 60 },
-    });
-    return response;
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${productId}`,
+      getDefaultOptions("POST", formData),
+    );
+    return { success: true, status: response.status };
   } catch (e) {
-    throw e;
+    console.log("Có lỗi: " + e.message);
+    // Trả về đối tượng lỗi đơn giản hơn
+    throw { message: e.message, type: "uploadError" };
   }
 };
 
-export const uploadMultipleFiles = async (id, formData) => {
+export const fetchImages = async (id) => {
   try {
     const response = await fetch(
-      `${BE_URL}/api/v1/product/${id}/product-images`,
-      {
-        method: "POST",
-        headers: {
-          ...AuthConfig.headers,
-          "Content-Type": "multipart/form-data",
-        },
-        body: formData,
-      },
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${id}`,
+      getDefaultOptions("GET"),
     );
-    return await response.json();
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, status: response.status, data: data };
+    } else {
+      return { success: false, status: response.status };
+    }
   } catch (e) {
-    throw e;
+    console.log("Có lỗi: " + e.message);
+    throw { message: e.message, type: "fetchError" };
   }
 };
-export const customerProfilePictureUrl = (id) =>
-  `${BE_URL}/api/v1/customers/${id}/profile-image`;
+export const deleteImagesFromServer = async ({ id, imageKey }) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images?productId=${id}&imageKey=${imageKey}`,
+      getDefaultOptions("DELETE"),
+    );
+    if (!response.ok) {
+      throw new Error(`Deletion failed with status ${response.status}`);
+    }
+    return { success: true, status: response.status };
+  } catch (e) {
+    console.log("Có lỗi: " + e.message);
+    throw { message: e.message, type: "deleteError" };
+  }
+};
