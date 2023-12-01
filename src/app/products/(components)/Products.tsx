@@ -81,7 +81,6 @@ const statusMappings: { [key: number]: string } = {
 };
 
 const Products: React.FC<TableProps> = ({ searchParams }) => {
-  console.log(searchParams);
   const [products, setProducts] = useState<Product[]>([]);
   const [totalPage, setTotalPage] = useState<number>(0);
   const q = searchParams?.q || "";
