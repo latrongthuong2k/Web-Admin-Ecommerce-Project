@@ -1,18 +1,18 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import InputForUser from "@/app/admins/(component)/InputForUser";
+import InputDataForAdmin from "@/app/admins/(component)/InputDataForAdmin";
 import { ModalContext } from "@/app/context/ModalContext";
 import InputForCategory from "@/app/categories/(component)/InputForCategory";
 import { productConnectedEntities } from "@/services/ProductService";
 import DropdownCategory from "@/app/categories/(component)/DropdownCategory";
-import { CategoryContextData } from "@/app/context/CategoryDataContext";
 
+// for add new
 export const categoriesContent = (categoryDropdownData, categoryDataById) => {
   return (
     <>
       <InputForCategory
-        title={"category"}
+        title={"categoryName"}
         modeName={"add"}
         showTitle={"Category name"}
         defaultValue={categoryDataById}
@@ -26,12 +26,73 @@ export const categoriesContent = (categoryDropdownData, categoryDataById) => {
     </>
   );
 };
+export const adminAddContent = () => {
+  return (
+    <>
+      <InputDataForAdmin
+        title={"firstName"}
+        modeName={"add"}
+        showTitle={"first name"}
+      />
+      <InputDataForAdmin
+        title={"lastName"}
+        modeName={"add"}
+        showTitle={"last name"}
+      />
+      <InputDataForAdmin title={"email"} modeName={"add"} showTitle={"email"} />
+      <InputDataForAdmin
+        title={"password"}
+        modeName={"add"}
+        showTitle={"password"}
+      />
+    </>
+  );
+};
+export const adminUpdateContent = (prevData) => {
+  return (
+    <>
+      <InputDataForAdmin
+        title={"firstName"}
+        modeName={"update"}
+        showTitle={"first name"}
+        defaultValue={prevData.firstName}
+      />
+      <InputDataForAdmin
+        title={"lastName"}
+        modeName={"update"}
+        showTitle={"last name"}
+        defaultValue={prevData.lastName}
+      />
+      <InputDataForAdmin
+        title={"email"}
+        modeName={"update"}
+        showTitle={"email"}
+        defaultValue={prevData.email}
+      />
+      <InputDataForAdmin
+        title={"currentPassword"}
+        modeName={"update"}
+        showTitle={"current Password"}
+      />
+      <InputDataForAdmin
+        title={"newPassword"}
+        modeName={"update"}
+        showTitle={"new Password"}
+      />
+      <InputDataForAdmin
+        title={"confirmationPassword"}
+        modeName={"update"}
+        showTitle={"confirmation Password"}
+      />
+    </>
+  );
+};
 export default function AddButton({ buttonName }) {
   const { handleOpen, setTitle, setContent, setDropdownCategories } =
     useContext(ModalContext);
-  const [category, setCategory] = useState([]);
+  const [category, setCategory] = useState();
   useEffect(() => {
-    if (buttonName.toLowerCase() === "add category") {
+    if (buttonName.toLowerCase() === "add new category") {
       // console.log(buttonName);
       const fetchData = async () => {
         const response = await productConnectedEntities();
@@ -41,40 +102,18 @@ export default function AddButton({ buttonName }) {
       };
       fetchData();
     }
-  }, []);
+  }, [buttonName, setDropdownCategories]);
 
+  // add new
   const adminCustomModal = () => {
     setTitle("Add new Admin");
-    setContent(adminContent);
+    setContent(adminAddContent);
     handleOpen();
   };
-
   const categoryCustomModal = () => {
     setTitle("Add new Category");
     setContent(categoriesContent(category, ""));
     handleOpen();
-  };
-  const adminContent = () => {
-    return (
-      <>
-        <InputForUser
-          title={"firstName"}
-          modeName={"add"}
-          showTitle={"first name"}
-        />
-        <InputForUser
-          title={"lastName"}
-          modeName={"add"}
-          showTitle={"last name"}
-        />
-        <InputForUser title={"email"} modeName={"add"} showTitle={"email"} />
-        <InputForUser
-          title={"password"}
-          modeName={"add"}
-          showTitle={"password"}
-        />
-      </>
-    );
   };
 
   const btnDesign =
@@ -92,11 +131,11 @@ export default function AddButton({ buttonName }) {
       {/*  Add new product*/}
       {/*</Button>*/}
       {/*<BasicModal variant={variant} setVariant={setVariant} />*/}
-      {buttonName.toLowerCase() === "add product" ? (
-        <Link className={btnDesign} href={"/products/add"}>
-          {buttonName}
+      {buttonName.toLowerCase() === "add new product" ? (
+        <Link href={"/products/add"}>
+          <div className={btnDesign}>{buttonName}</div>
         </Link>
-      ) : buttonName.toLowerCase() === "add category" ? (
+      ) : buttonName.toLowerCase() === "add new category" ? (
         <div
           className={`cursor-pointer ${btnDesign}`}
           onClick={categoryCustomModal}
@@ -104,13 +143,6 @@ export default function AddButton({ buttonName }) {
           {buttonName}
         </div>
       ) : buttonName.toLowerCase() === "add new admin" ? (
-        <div
-          className={`cursor-pointer ${btnDesign}`}
-          onClick={adminCustomModal}
-        >
-          {buttonName}
-        </div>
-      ) : buttonName.toLowerCase() === "add new user" ? (
         <div
           className={`cursor-pointer ${btnDesign}`}
           onClick={adminCustomModal}

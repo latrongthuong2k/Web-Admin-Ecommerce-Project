@@ -3,6 +3,16 @@ export type PropsT = {
   name: string;
 };
 
+// order
+export type Bill = {
+  id: number;
+  createdDate: string;
+  approvedDate: string;
+  createdBy: string;
+  approvedBy: string;
+  billStatus: string;
+};
+
 // Category
 export type Category = {
   id: number;
@@ -23,7 +33,16 @@ export type User = {
   email: string;
   createdAt: string;
   updatedAt: string;
+  status: boolean;
   role: string;
+};
+export type CustomTableProps = {
+  searchParams?: {
+    q?: string;
+    page?: number;
+    sortField?: string;
+    sortDir?: string;
+  };
 };
 export type UserTableProps = {
   searchParams?: {

@@ -5,6 +5,7 @@ import Modal from "@mui/material/Modal";
 import { Button } from "@mui/material";
 import { AdminDataContext } from "@/app/context/AdminDataContext";
 import { CategoryContextData } from "@/app/context/CategoryDataContext";
+import { BillContextData } from "@/app/context/OrderContextData";
 
 const style = {
   position: "absolute",
@@ -54,15 +55,32 @@ export const GeneralModal = ({
         sx={{ mt: 2 }}
       >
         {content}
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          className={
-            "w-1/2 self-center bg-gray-500 uppercase hover:bg-teal-800 "
-          }
-        >
-          {mode.toLowerCase() === "add" ? "Add" : "Update"}
-        </Button>
+        <div className={"flex justify-evenly"}>
+          <Button
+            onClick={async (e) => {
+              await handleSubmit(
+                e,
+                mode?.toLowerCase() === "add" ? "create" : "update",
+              );
+              handleClose(); // Đóng modal sau khi xử lý
+            }}
+            variant="contained"
+            className={
+              " w-1/3 self-center bg-cyan-500 uppercase hover:bg-teal-800 "
+            }
+          >
+            {mode?.toLowerCase() === "add" ? "Add" : "Update"}
+          </Button>
+          <Button
+            onClick={handleClose}
+            variant="contained"
+            className={
+              "w-1/3 self-center bg-gray-500 uppercase hover:bg-teal-800 "
+            }
+          >
+            {"Close"}
+          </Button>
+        </div>
       </Box>
     </Box>
   </Modal>
@@ -73,12 +91,20 @@ export const UserModalProvider = ({ children }) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("Default Title");
   const [content, setContent] = useState("Default Content");
+  const [mode, setMode] = useState("add");
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   return (
     <ModalContext.Provider
-      value={{ handleOpen, handleClose, setTitle, setContent }}
+      value={{
+        handleOpen,
+        handleClose,
+        setTitle,
+        setContent,
+        setMode,
+      }}
     >
       {children}
       <GeneralModal
@@ -87,6 +113,7 @@ export const UserModalProvider = ({ children }) => {
         open={open}
         handleClose={handleClose}
         handleSubmit={handleSubmit}
+        mode={mode}
       />
     </ModalContext.Provider>
   );
@@ -127,4 +154,35 @@ export const CategoryModalProvider = ({ children }) => {
   );
 };
 
-// And do the same for CategoryModalProvider
+export const BillModalProvider = ({ children }) => {
+  const { handleSubmit, setDropdownStatus } = useContext(BillContextData);
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("Default Title");
+  const [content, setContent] = useState("Default Content");
+  const [mode, setMode] = useState("add");
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  return (
+    <ModalContext.Provider
+      value={{
+        handleOpen,
+        handleClose,
+        setTitle,
+        setContent,
+        setMode,
+        setDropdownStatus,
+      }}
+    >
+      {children}
+      <GeneralModal
+        title={title}
+        content={content}
+        open={open}
+        handleClose={handleClose}
+        handleSubmit={handleSubmit}
+        mode={mode}
+      />
+    </ModalContext.Provider>
+  );
+};

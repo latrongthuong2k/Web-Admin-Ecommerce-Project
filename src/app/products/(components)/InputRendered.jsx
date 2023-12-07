@@ -5,12 +5,11 @@ import { DtoContext } from "@/app/context/DataProvider";
 
 const InputRendered = ({ modeName, title, showTitle, defaultValue }) => {
   const [value, setValue] = useState(defaultValue || "");
-  const { updateState } = useContext(DtoContext);
+  const { updateState, dto } = useContext(DtoContext);
   const [error, setError] = useState("");
   useEffect(() => {
-    setValue(defaultValue || "");
+    setValue(defaultValue);
   }, [defaultValue]);
-
   const validateInput = (field, value) => {
     if (!value || value.trim().length === 0) {
       return "This field cannot be empty.";
@@ -38,10 +37,11 @@ const InputRendered = ({ modeName, title, showTitle, defaultValue }) => {
           return "Stock quantity must be a positive integer.";
         }
         break;
+      default:
+        break;
     }
     return "";
   };
-
   const handInput = (e) => {
     const inputValue = e.target.value;
     const fieldError = validateInput(title, inputValue);
@@ -50,6 +50,9 @@ const InputRendered = ({ modeName, title, showTitle, defaultValue }) => {
     if (!fieldError) {
       const fieldName = title.replace(/\s+/g, "");
       updateState({ field: fieldName, value: inputValue });
+    } else {
+      const fieldName = title.replace(/\s+/g, "");
+      updateState({ field: fieldName, value: "" });
     }
   };
 

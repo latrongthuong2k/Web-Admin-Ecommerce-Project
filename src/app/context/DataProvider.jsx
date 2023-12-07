@@ -10,6 +10,7 @@ import {
 } from "@/services/serverFetch";
 import { useNotification } from "@/app/context/NotificationContext";
 import { v4 as uuidV4 } from "uuid";
+import { useRouter } from "next/navigation";
 
 export const DtoContext = createContext(undefined);
 export const DataProvider = ({ children }) => {
@@ -26,8 +27,9 @@ export const DataProvider = ({ children }) => {
     description: "",
     // Thêm các trạng thái khác ở đây
   });
-  const [formData, setFormData] = useState(new FormData());
   // const [imageUrls, setImageUrls] = useState([]);
+  const router = useRouter();
+  const [formData, setFormData] = useState(new FormData());
   const [filesInfo, setFilesInfo] = useState([]);
   const { showNotification } = useNotification();
   // Thêm file
@@ -148,30 +150,26 @@ export const DataProvider = ({ children }) => {
     try {
       const response = await sendData(dto, productId);
       if (!response.success) {
-        showNotification("error", "Failed to send data.");
-        return;
+        showNotification("error", response.err);
       }
-      if (formData) {
+      if (formData.entries().next().value) {
         try {
-          const uploadResponse = await uploadMultipleFiles(
-            response.data,
-            formData,
-          );
+          const uploadResponse = await uploadMultipleFiles(productId, formData);
           if (uploadResponse.status !== 200) {
-            throw new Error("Upload failed");
+            showNotification("error", "Ops something wrong!");
+            return;
           }
-          showNotification("success", "Data and files uploaded successfully!");
+          showNotification("success", "Data sent successfully!");
         } catch (uploadError) {
           console.error("Upload error:", uploadError);
-          showNotification("error", "Upload failed!");
+          showNotification("error", "Failed to create product!");
         }
-      } else {
-        showNotification("success", "Data sent successfully!");
-      }
+      } else showNotification("success", "Data sent successfully!");
     } catch (error) {
       console.error("Error:", error);
       showNotification("error", error.message);
     }
+    // router.push("/products");
   };
 
   return (

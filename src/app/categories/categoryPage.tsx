@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { CircularProgress } from "@mui/joy";
 import { Category } from "@/Type/type";
 import { TableProps } from "@/app/products/(components)/Products";
-import { fetchCategories } from "@/services/CategoryService";
+import { deleteCategory, fetchCategories } from "@/services/CategoryService";
 import PaginationTable from "@/app/products/(components)/PaginationTable";
 import Search from "@/app/products/(components)/Search";
 import SortBar from "@/app/products/(components)/SortButtons";
 import { MenuItem } from "@mui/material";
 import AddButton from "@/components/AddButton";
-import { CategoryModalProvider } from "@/app/context/ModalContext";
+import { useNotification } from "@/app/context/NotificationContext";
+import { CategoryContextData } from "@/app/context/CategoryDataContext";
 
 const LazyLoadedTableBody = dynamic(
   () => import("./(component)/LazyLoadedTbodyCategory"),
@@ -37,12 +38,15 @@ const thRender = (attribute: string) => (
 const CategoryPage: React.FC<TableProps> = ({ searchParams }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [totalPage, setTotalPage] = useState<number>(0);
+  const [isDelete, setIsDelete] = useState<boolean>(false);
   const q = searchParams?.q || "";
   const page = searchParams?.page || 1;
   const sortField = searchParams?.sortField || "categoryName";
   const sortDir = searchParams?.sortDir || "asc";
-  const [isDelete, setIsDelete] = useState<boolean>(false);
-
+  // @ts-ignore
+  const { showNotification } = useNotification();
+  // @ts-ignore
+  const { isSubmit } = useContext(CategoryContextData);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -59,27 +63,26 @@ const CategoryPage: React.FC<TableProps> = ({ searchParams }) => {
           setCategories(categoryPage.categories);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        showNotification("error", "Error fetching categories : " + error);
       }
     };
     fetchData();
-  }, [isDelete, page, q, sortDir, sortField]);
+  }, [isSubmit, isDelete, page, q, sortDir, sortField, showNotification]);
 
   // handle delete
-  const handleDelete = async (productId: number) => {
-    // try {
-    //   await deleteProduct(productId);
-    //   setIsDelete((prev) => !prev);
-    //   console.log("Product deleted successfully");
-    // } catch (error) {
-    //   console.error("Error deleting product:", error);
-    // }
+  const handleDelete = async (categoryId: number) => {
+    try {
+      const res = await deleteCategory(categoryId);
+      if (res.success) showNotification("success", res.successMessage);
+      else showNotification("error", res.err);
+      setIsDelete((prev) => !prev);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
   };
   return (
     <div className="container mx-auto mt-14">
-      <CategoryModalProvider>
-        <AddButton buttonName={"Add Category"} />
-      </CategoryModalProvider>
+      <AddButton buttonName={"Add new Category"} />
       <div className="flex justify-between">
         <Search />
         <SortBar
@@ -104,12 +107,10 @@ const CategoryPage: React.FC<TableProps> = ({ searchParams }) => {
             </tr>
           </thead>
           {/*T-Body*/}
-          <CategoryModalProvider>
-            <LazyLoadedTableBody
-              handle={handleDelete}
-              categoriesTableData={categories}
-            />
-          </CategoryModalProvider>
+          <LazyLoadedTableBody
+            handleDelete={handleDelete}
+            categoriesTableData={categories}
+          />
         </table>
       </div>
       <div className={"ml-2 mt-6"}>

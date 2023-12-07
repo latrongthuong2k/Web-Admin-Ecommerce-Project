@@ -5,19 +5,20 @@ import {
   sendUpdateDataToBackend,
 } from "@/services/CategoryService";
 import { useNotification } from "@/app/context/NotificationContext";
+import { useSearchParams } from "next/navigation";
 
 export const CategoryContextData = createContext(undefined);
 export const CateDataProvider = ({ children }) => {
   const [dto, setDto] = useState({
     categoryName: "",
-    parentCategory: {},
+    parentCategory: null,
     // Thêm các trạng thái khác ở đây
   });
   const [categories, setCategories] = useState([]);
   const [dropdownCategories, setDropdownCategories] = useState([]);
+  const [isSubmit, setIsSubmit] = useState(false);
   const { showNotification } = useNotification();
-  const [cateId, setCateId] = useState(0);
-
+  const params = useSearchParams();
   /**
    * Returns an array of field names that have empty values in the given DTO object.
    *
@@ -25,13 +26,17 @@ export const CateDataProvider = ({ children }) => {
    */
   const getEmptyFields = () => {
     return Object.entries(dto).reduce((emptyFields, [key, value]) => {
-      if (Array.isArray(value) ? value.length === 0 : !value) {
+      if (
+        Array.isArray(value)
+          ? value.length === 0
+          : !value && key !== "parentCategory"
+      ) {
         emptyFields.push(key);
       }
       return emptyFields;
     }, []);
   };
-  const handleSubmit = async (e, action, categoryId) => {
+  const handleSubmit = async (e, action) => {
     e.preventDefault();
     // check Dto
     const emptyFields = getEmptyFields();
@@ -54,12 +59,13 @@ export const CateDataProvider = ({ children }) => {
       }
     };
     try {
-      const response = await sendData(dto, categoryId);
+      const response = await sendData(dto, params.get("cateId")); // nơi id vào
       if (!response.success) {
-        showNotification("error", "Failed to create category.");
+        showNotification("error", response.err); // err: text
         return;
       }
-      showNotification("success", "Create new category successfully.");
+      showNotification("success", response.successMessage);
+      setIsSubmit((prevState) => !prevState);
     } catch (error) {
       console.error("Error:", error);
       showNotification("error", error.message);
@@ -70,13 +76,12 @@ export const CateDataProvider = ({ children }) => {
       value={{
         dto,
         setDto,
+        isSubmit,
         categories,
         setCategories,
         dropdownCategories,
         setDropdownCategories,
         handleSubmit,
-        cateId,
-        setCateId,
       }}
     >
       {children}

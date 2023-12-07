@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { CircularProgress } from "@mui/joy";
 import { User, UserTableProps } from "@/Type/type";
@@ -10,22 +10,21 @@ import { MenuItem } from "@mui/material";
 
 import AddButton from "@/components/AddButton";
 import { UserModalProvider } from "@/app/context/ModalContext";
+import { deleteUser, fetchPageAdmin } from "@/services/AdminService";
+import { useNotification } from "@/app/context/NotificationContext";
 
-const LazyLoadedTableBody = dynamic(
-  () => import("./(component)/LazyLoadedTbodyUser"),
-  {
-    loading: () => (
-      <tbody>
-        <tr>
-          <td className={"flex justify-center p-5"}>
-            <CircularProgress />
-          </td>
-        </tr>
-      </tbody>
-    ),
-    ssr: false,
-  },
-);
+const LazyLoadedTableBody = dynamic(() => import("./LazyLoadedTbodyAdmins"), {
+  loading: () => (
+    <tbody>
+      <tr>
+        <td className={"flex justify-center p-5"}>
+          <CircularProgress />
+        </td>
+      </tr>
+    </tbody>
+  ),
+  ssr: false,
+});
 
 const thRender = (attribute: string) => (
   <th className="whitespace-nowrap p-2">
@@ -33,7 +32,7 @@ const thRender = (attribute: string) => (
   </th>
 );
 
-const UserPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
+const AdminPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [totalPage, setTotalPage] = useState<number>(0);
   const q = searchParams?.q || "";
@@ -41,61 +40,51 @@ const UserPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
   const sortField = searchParams?.sortField || "firstName";
   const sortDir = searchParams?.sortDir || "asc";
   const [isDelete, setIsDelete] = useState<boolean>(false);
-  if (targetProps === "user") {
-    // useEffect(() => {
-    //   const fetchData = async () => {
-    //     try {
-    //       // Thực hiện gọi API để lấy danh sách các danh mục
-    //       const categoryPage = await fetchCategories(
-    //         q,
-    //         page,
-    //         10,
-    //         sortField,
-    //         sortDir,
-    //       );
-    //       if (categoryPage) {
-    //         setTotalPage(categoryPage.totalPages);
-    //         setUsers(categoryPage.users);
-    //       }
-    //     } catch (error) {
-    //       console.error("Error fetching products:", error);
-    //     }
-    //   };
-    //   fetchData();
-    // }, [isDelete, page, q, sortDir, sortField]);
-  } else if (targetProps === "admin") {
-    // fetch admin
-  }
+  // @ts-ignore
+  const { showNotification } = useNotification();
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const usersPage = await fetchPageAdmin(q, page, 10, sortField, sortDir);
+        if (usersPage) {
+          setTotalPage(usersPage.data.totalPages);
+          setUsers(usersPage.data.users);
+        }
+      } catch (error) {
+        showNotification("error", "Error fetching users:", error);
+      }
+    };
+    fetchData();
+  }, [isDelete, page, q, showNotification, sortDir, sortField]);
   // handle delete
-  const handleDelete = async (productId: number) => {
-    // try {
-    //   await deleteProduct(productId);
-    //   setIsDelete((prev) => !prev);
-    //   console.log("Product deleted successfully");
-    // } catch (error) {
-    //   console.error("Error deleting product:", error);
-    // }
+  const handleDelete = async (userId: number) => {
+    try {
+      const res = await deleteUser(userId);
+      if (res.success) showNotification("success", res.data);
+      else showNotification("error", res.err);
+      setIsDelete((prev) => !prev);
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
   };
 
   return (
     <div className="container mx-auto mt-14">
-      <UserModalProvider>
-        <AddButton buttonName={`Add new ${targetProps}`} />
-      </UserModalProvider>
+      <AddButton buttonName={`Add new ${targetProps}`} />
       <div className="flex justify-between">
         <Search />
         <SortBar
           optionProps={[
             <MenuItem value="firstName" key="firstName">
-              first name
+              First name
             </MenuItem>,
             <MenuItem value="lastName" key="lastName">
-              last name
+              Last name
             </MenuItem>,
             <MenuItem value="email" key="email">
-              email
+              Email
             </MenuItem>,
-            <MenuItem value="createAt" key="createAt">
+            <MenuItem value="createdAt" key="createdAt">
               Created at
             </MenuItem>,
           ]}
@@ -128,4 +117,4 @@ const UserPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
   );
 };
 
-export default UserPage;
+export default AdminPage;

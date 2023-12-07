@@ -1,10 +1,12 @@
-import React, { useContext } from "react";
+import React from "react";
 import Link from "next/link";
 import EditNoteTwoToneIcon from "@mui/icons-material/EditNoteTwoTone";
 import { tdRender, tdRender2 } from "./Products";
 import { usePathname } from "next/navigation";
-import { DtoContext } from "@/app/context/DataProvider";
 
+function formatDate(dateString) {
+  return dateString?.split("T")[0];
+}
 const LazyLoadedTableBody = ({ handle, products }) => {
   const pathName = usePathname();
   return (
@@ -13,6 +15,9 @@ const LazyLoadedTableBody = ({ handle, products }) => {
         <tr key={product.id}>
           {tdRender(product.productName)}
           {tdRender(product.createdAt)}
+          {tdRender(
+            product.updatedAt ? formatDate(product.updatedAt) : "no change",
+          )}
           {tdRender(product.quantity)}
           {tdRender(product.price)}
           {tdRender2(product.status)}

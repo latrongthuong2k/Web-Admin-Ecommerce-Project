@@ -1,6 +1,6 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DropdownRendered from "@/app/products/(components)/DropdownRendered";
 import InputRendered from "@/app/products/(components)/InputRendered";
 import CheckboxesTags from "@/app/products/(components)/CheckBoxesTags";
@@ -75,7 +75,7 @@ const ActionPage = () => {
     clientTypes: [],
     suppliers: [],
   });
-
+  // console.log(dto);
   // @ts-ignore
   const descriptionHandlerChanged = (e) => {
     const value = e.target.value;
@@ -130,8 +130,7 @@ const ActionPage = () => {
       };
       fetchData();
     }
-  }, []);
-
+  }, [params, pathname, setDto]);
   const pathSegments = pathname.split("/");
   const modeName = pathSegments.pop();
   return (
@@ -152,6 +151,7 @@ const ActionPage = () => {
                   }
                 : (e) => {
                     handleSubmit(e, "create");
+                    // route.push("/products");
                   }
             }
           >
@@ -159,21 +159,21 @@ const ActionPage = () => {
               {/*Product name*/}
               <InputRendered
                 title={"productName"}
-                modeName={modeName}
+                modeName={"add"}
                 showTitle={"product name"}
                 defaultValue={productById.productName}
               />
               {/*price*/}
               <InputRendered
                 title={"price"}
-                modeName={modeName}
+                modeName={"add"}
                 showTitle={"price"}
                 defaultValue={productById.price}
               />
               {/*Stock quantity*/}
               <InputRendered
                 title={"stockQuantity"}
-                modeName={modeName}
+                modeName={"add"}
                 showTitle={"stock quantity"}
                 defaultValue={productById.stockQuantity}
               />

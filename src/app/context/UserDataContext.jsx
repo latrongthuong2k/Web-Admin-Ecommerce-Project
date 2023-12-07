@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useState } from "react";
-import { sendUserToBackend } from "@/services/UserAdminService";
+import { sendUserToBackend } from "@/services/AdminService";
 import { useNotification } from "@/app/context/NotificationContext";
 
 export const UserDataContext = createContext(undefined);

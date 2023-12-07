@@ -9,6 +9,7 @@ import SortBar from "@/app/products/(components)/SortButtons";
 import { MenuItem } from "@mui/material";
 import AddButton from "@/components/AddButton";
 import { useNotification } from "@/app/context/NotificationContext";
+
 export type Product = {
   id: number;
   productName: string;
@@ -92,9 +93,10 @@ const Products: React.FC<TableProps> = ({ searchParams }) => {
   const { showNotification } = useNotification();
   const handleDelete = async (productId: number) => {
     try {
-      await deleteProduct(productId);
+      const res = await deleteProduct(productId);
       setIsDelete((prev) => !prev);
-      showNotification("success", "Product deleted successfully");
+      if (res.success) showNotification("success", res.successMessage);
+      else showNotification("error", res.err);
     } catch (error) {
       showNotification("error", "Product failed to delete");
       console.error("Error deleting product:", error);
@@ -128,14 +130,14 @@ const Products: React.FC<TableProps> = ({ searchParams }) => {
           setProducts(formattedProducts);
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+        showNotification("error", "Error fetching products : " + error);
       }
     };
     fetchData();
-  }, [page, q, sortDir, sortField]);
+  }, [page, q, sortDir, sortField, isDelete, showNotification]);
   return (
     <div className="container mx-auto mr-14 mt-14">
-      <AddButton buttonName={"Add product"} />
+      <AddButton buttonName={"Add new product"} />
       <div className="flex justify-between">
         <Search />
         <SortBar
@@ -162,6 +164,7 @@ const Products: React.FC<TableProps> = ({ searchParams }) => {
             <tr className="mb-[5px] rounded bg-teal-800 text-center text-lg font-semibold uppercase text-white">
               {thRender("Product Name")}
               {thRender("Create at")}
+              {thRender("Update at")}
               {thRender("Quantity")}
               {thRender("Price")}
               {thRender("Status")}

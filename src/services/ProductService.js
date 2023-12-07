@@ -31,7 +31,7 @@ export const fetchPageProduct = async (q, page, size, sortField, sortDir) => {
         "Content-Type": "application/json",
         ...getAuthHeader(),
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
     return await res.json();
   } catch (err) {
@@ -52,7 +52,7 @@ export const productConnectedEntities = async () => {
     });
     return await response.json();
   } catch (err) {
-    return handleFetchError(err, "Error fetching category data");
+    return handleFetchError(err, "Error when sending data to backend:");
   }
 };
 
@@ -66,14 +66,27 @@ export const sendDataToBackend = async (dto) => {
       },
       body: JSON.stringify(dto),
     });
-    return res.status === 200
-      ? { data: await res.text(), success: true, status: res.status }
-      : { success: false };
+    if (res.status === 200) {
+      return {
+        successMessage: await res.text(),
+        productId: res.text(),
+        success: true,
+        status: res.status,
+      };
+    } else {
+      const errorResponse = await res.json();
+      return {
+        err: errorResponse.message,
+        success: false,
+        status: res.status,
+        path: errorResponse.path,
+        timestamp: errorResponse.timestamp,
+      };
+    }
   } catch (err) {
     return handleFetchError(err, "Error when sending data to backend:");
   }
 };
-
 export const sendUpdateDataToBackend = async (productId, dto) => {
   try {
     const res = await fetch(`${BASE_URL}/update?productId=${productId}`, {
@@ -84,9 +97,23 @@ export const sendUpdateDataToBackend = async (productId, dto) => {
       },
       body: JSON.stringify(dto),
     });
-    return res.ok
-      ? { data: await res.text(), success: true, status: res.status }
-      : { success: false };
+    if (res.status === 200) {
+      return {
+        // successMessage: await res.text(),
+        productId: res.text(),
+        success: true,
+        // status: res.status,
+      };
+    } else {
+      const errorResponse = await res.json();
+      return {
+        err: errorResponse.message,
+        success: false,
+        status: res.status,
+        path: errorResponse.path,
+        timestamp: errorResponse.timestamp,
+      };
+    }
   } catch (err) {
     return handleFetchError(err, "Error when sending update data to backend:");
   }
@@ -116,8 +143,25 @@ export const deleteProduct = async (id) => {
         ...getAuthHeader(),
       },
     });
-    return await response.text();
+    if (response.status === 200) {
+      // Trường hợp thành công
+      return {
+        successMessage: await response.text(),
+        success: true,
+        status: response.status,
+      };
+    } else {
+      // Trường hợp lỗi, giả định phản hồi là JSON
+      const errorResponse = await response.json();
+      return {
+        err: errorResponse.message,
+        success: false,
+        status: response.status,
+        path: errorResponse.path,
+        timestamp: errorResponse.timestamp,
+      };
+    }
   } catch (err) {
-    return handleFetchError(err, "Error when deleting product:");
+    return handleFetchError(err, "Error when sending data to backend:");
   }
 };

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
@@ -8,14 +9,15 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ManageAccountsTwoToneIcon from "@mui/icons-material/ManageAccountsTwoTone";
 import Link from "next/link";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
+import { usePathname } from "next/navigation";
 
 const links = [
-  {
-    id: "1",
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: <HomeOutlinedIcon />,
-  },
+  // {
+  //   id: "1",
+  //   title: "Dashboard",
+  //   url: "/dashboard",
+  //   icon: <HomeOutlinedIcon />,
+  // },
   {
     id: "2",
     title: "Products",
@@ -40,18 +42,18 @@ const links = [
     url: "/admins",
     icon: <ManageAccountsTwoToneIcon />,
   },
-  {
-    id: "6",
-    title: "Users",
-    url: "/users",
-    icon: <PeopleOutlineOutlinedIcon />,
-  },
-  {
-    id: "7",
-    title: "Settings",
-    url: "/settings",
-    icon: <SettingsOutlinedIcon />,
-  },
+  // {
+  //   id: "6",
+  //   title: "Users",
+  //   url: "/users",
+  //   icon: <PeopleOutlineOutlinedIcon />,
+  // },
+  // {
+  //   id: "6",
+  //   title: "Settings",
+  //   url: "/settings",
+  //   icon: <SettingsOutlinedIcon />,
+  // },
 ];
 // const handleLogout = async () => {
 //   try {
@@ -74,32 +76,35 @@ const links = [
 // };
 
 const NavBar = () => {
+  const pathname = usePathname();
   return (
-    <nav className=" mr-[30px] mt-[50px] flex h-full w-[300px] flex-col">
-      {links.map((item) => (
-        <Link key={item.id} href={item.url}>
-          <div
-            className={
-              "ml-[15px] flex items-center gap-[10px] " +
-              "rounded-[4px] p-[10px] text-[18px] hover:bg-violet-300 hover:shadow-md"
-            }
-          >
-            {item.icon}
-            <span>{item.title}</span>
-          </div>
+    pathname !== "/auth/login" && (
+      <nav className=" mr-[30px] mt-[50px] flex h-full w-[300px] flex-col">
+        {links.map((item) => (
+          <Link key={item.id} href={item.url}>
+            <div
+              className={
+                "ml-[15px] flex items-center gap-[10px] " +
+                "rounded-[4px] p-[10px] text-[18px] hover:bg-violet-300 hover:shadow-md"
+              }
+            >
+              {item.icon}
+              <span>{item.title}</span>
+            </div>
+          </Link>
+        ))}
+        <Link
+          href={`${process.env.NEXT_PUBLIC_BE_URL}/api/v1/auth/logout`}
+          className={
+            "ml-[15px] flex items-center gap-[10px] rounded-[4px] " +
+            "p-[10px] text-[18px] hover:bg-violet-300 hover:shadow-md"
+          }
+        >
+          <LogoutOutlinedIcon />
+          Log out
         </Link>
-      ))}
-      <Link
-        href={`${process.env.NEXT_PUBLIC_BE_URL}/api/v1/auth/logout`}
-        className={
-          "ml-[15px] flex items-center gap-[10px] rounded-[4px] " +
-          "p-[10px] text-[18px] hover:bg-violet-300 hover:shadow-md"
-        }
-      >
-        <LogoutOutlinedIcon />
-        Log out
-      </Link>
-    </nav>
+      </nav>
+    )
   );
 };
 

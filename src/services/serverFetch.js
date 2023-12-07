@@ -132,7 +132,6 @@ const getDefaultOptions = (method, body = null) => {
   return options;
 };
 export const uploadMultipleFiles = async (productId, formData) => {
-  console.log(productId, formData);
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${productId}`,
@@ -141,7 +140,6 @@ export const uploadMultipleFiles = async (productId, formData) => {
     return { success: true, status: response.status };
   } catch (e) {
     console.log("Có lỗi: " + e.message);
-    // Trả về đối tượng lỗi đơn giản hơn
     throw { message: e.message, type: "uploadError" };
   }
 };

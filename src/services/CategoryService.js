@@ -14,7 +14,6 @@ const getAuthHeader = () => {
 
 export const fetchCategories = async (q, page, size, sortField, sortDir) => {
   try {
-    console.log(q, page, size, sortField, sortDir);
     const response = await fetch(
       `${BASE_URL}/page?page=${
         page - 1
@@ -73,9 +72,54 @@ export const sendCateToBackend = async (dto) => {
       },
       body: JSON.stringify(dto),
     });
-    return res.status === 200
-      ? { data: await res.text(), success: true, status: res.status }
-      : { success: false };
+    if (res.status === 200) {
+      // Trường hợp thành công
+      return {
+        successMessage: await res.text(),
+        success: true,
+        status: res.status,
+      };
+    } else {
+      // Trường hợp lỗi, giả định phản hồi là JSON
+      const errorResponse = await res.json();
+      return {
+        err: errorResponse.message,
+        success: false,
+        status: res.status,
+        path: errorResponse.path,
+        timestamp: errorResponse.timestamp,
+      };
+    }
+  } catch (err) {
+    return handleFetchError(err, "Error when sending data to backend:");
+  }
+};
+export const deleteCategory = async (categoryId) => {
+  try {
+    const res = await fetch(`${BASE_URL}/delete/${categoryId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+    });
+    if (res.status === 200) {
+      // Trường hợp thành công
+      return {
+        successMessage: await res.text(),
+        success: true,
+        status: res.status,
+      };
+    } else {
+      const errorResponse = await res.json();
+      return {
+        err: errorResponse.message,
+        success: false,
+        status: res.status,
+        path: errorResponse.path,
+        timestamp: errorResponse.timestamp,
+      };
+    }
   } catch (err) {
     return handleFetchError(err, "Error when sending data to backend:");
   }
@@ -91,9 +135,22 @@ export const sendUpdateDataToBackend = async (categoryId, dto) => {
       },
       body: JSON.stringify(dto),
     });
-    return res.ok
-      ? { data: await res.text(), success: true, status: res.status }
-      : { success: false };
+    if (res.status === 200) {
+      return {
+        successMessage: await res.text(),
+        success: true,
+        status: res.status,
+      };
+    } else {
+      const errorResponse = await res.json();
+      return {
+        err: errorResponse.message,
+        success: false,
+        status: res.status,
+        path: errorResponse.path,
+        timestamp: errorResponse.timestamp,
+      };
+    }
   } catch (err) {
     return handleFetchError(err, "Error when sending update data to backend:");
   }

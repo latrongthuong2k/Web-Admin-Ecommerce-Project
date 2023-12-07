@@ -8,7 +8,9 @@ const InputForCategory = ({ modeName, title, showTitle, defaultValue }) => {
   const [error, setError] = useState("");
   useEffect(() => {
     setValue(defaultValue.categoryName || "");
-  }, [defaultValue.categoryName]);
+    const fieldName = title.replace(/\s+/g, "");
+    setDto((prev) => ({ ...prev, [fieldName]: defaultValue.categoryName }));
+  }, [defaultValue.categoryName, setDto, title]);
   const validateInput = (field, value) => {
     if (!value || value.trim().length === 0) {
       return "This field cannot be empty.";
@@ -32,10 +34,9 @@ const InputForCategory = ({ modeName, title, showTitle, defaultValue }) => {
     setValue(inputValue);
     if (!fieldError) {
       const fieldName = title.replace(/\s+/g, "");
-      setDto((prev) => ({ ...prev, [fieldName]: value }));
+      setDto((prev) => ({ ...prev, [fieldName]: inputValue }));
     }
   };
-  console.log(dto);
 
   return (
     <div className="w-full px-3">

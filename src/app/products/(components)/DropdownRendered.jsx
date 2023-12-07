@@ -10,7 +10,7 @@ const DropdownRendered = ({ props, title, showTitle, defaultValue }) => {
   // const pathname = usePathname();
   // const searchParams = useSearchParams();
   const { updateState } = useContext(DtoContext);
-  const [selectedValue, setSelectedValue] = useState("");
+  const [selectedValue, setSelectedValue] = useState(0);
 
   const validateSelection = (title, value) => {
     if (!value || value === "") {
@@ -19,6 +19,12 @@ const DropdownRendered = ({ props, title, showTitle, defaultValue }) => {
     return "";
   };
 
+  useEffect(() => {
+    if (props && props.length > 0) {
+      setSelectedValue(props[0].id);
+      updateState({ field: title, value: props[0].id });
+    }
+  }, [props]);
   // const handleChange = (e) => {
   //   // const params = new URLSearchParams(searchParams);
   //   const value = e.target.value;
@@ -55,26 +61,14 @@ const DropdownRendered = ({ props, title, showTitle, defaultValue }) => {
           id={title}
           name={title}
           color="secondary"
-          value={selectedValue ? selectedValue : defaultValue}
+          value={defaultValue === 0 ? selectedValue : defaultValue}
           onChange={handleChange} //setparams
         >
-          <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
           {props.map((item) => (
             <MenuItem key={item.id} value={item.id}>
               {item.name}
             </MenuItem>
           ))}
-          <MenuItem>
-            <Link
-              className={"pl-[15px]"}
-              href={"/categories"}
-              value={"Add new"}
-            >
-              + Add new
-            </Link>
-          </MenuItem>
         </Select>
       </FormControl>
     </div>
