@@ -8,10 +8,9 @@ import Search from "@/app/products/(components)/Search";
 import SortBar from "@/app/products/(components)/SortButtons";
 import { MenuItem } from "@mui/material";
 
-import AddButton from "@/components/AddButton";
-import { UserModalProvider } from "@/app/context/ModalContext";
 import { deleteUser, fetchPageAdmin } from "@/services/AdminService";
 import { useNotification } from "@/app/context/NotificationContext";
+import AddButton from "@/app/admins/(component)/AddButton";
 
 const LazyLoadedTableBody = dynamic(() => import("./LazyLoadedTbodyAdmins"), {
   loading: () => (
@@ -46,6 +45,7 @@ const AdminPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
     const fetchData = async () => {
       try {
         const usersPage = await fetchPageAdmin(q, page, 10, sortField, sortDir);
+        console.log(usersPage);
         if (usersPage) {
           setTotalPage(usersPage.data.totalPages);
           setUsers(usersPage.data.users);
@@ -70,7 +70,7 @@ const AdminPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
 
   return (
     <div className="container mx-auto mt-14">
-      <AddButton buttonName={`Add new ${targetProps}`} />
+      <AddButton buttonName={"Add new admin user"} />
       <div className="flex justify-between">
         <Search />
         <SortBar

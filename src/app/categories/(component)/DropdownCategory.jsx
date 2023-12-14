@@ -1,9 +1,7 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
-import { InputLabel, MenuItem, Select } from "@mui/material";
-import { FormControl } from "@mui/material";
-import { DtoContext } from "@/app/context/DataProvider";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { CategoryContextData } from "@/app/context/CategoryDataContext";
 
 const DropdownCategory = ({ props, title, showTitle, defaultValue }) => {

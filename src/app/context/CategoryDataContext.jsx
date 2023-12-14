@@ -3,9 +3,11 @@ import React, { createContext, useState } from "react";
 import {
   sendCateToBackend,
   sendUpdateDataToBackend,
+  uploadMultipleFiles,
 } from "@/services/CategoryService";
 import { useNotification } from "@/app/context/NotificationContext";
 import { useSearchParams } from "next/navigation";
+import { v4 as uuidV4 } from "uuid";
 
 export const CategoryContextData = createContext(undefined);
 export const CateDataProvider = ({ children }) => {
@@ -17,8 +19,31 @@ export const CateDataProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [dropdownCategories, setDropdownCategories] = useState([]);
   const [isSubmit, setIsSubmit] = useState(false);
-  const { showNotification } = useNotification();
+  const [filesInfo, setFilesInfo] = useState([]);
+  const [formData, setFormData] = useState(new FormData());
+  const [loading, setLoading] = useState(false);
   const params = useSearchParams();
+  const { showNotification } = useNotification();
+
+  const addFile = (file) => {
+    const fileId = uuidV4();
+    const fileUrl = URL.createObjectURL(file);
+    setFilesInfo((prev) => [...prev, { id: fileId, url: fileUrl }]);
+    setFormData((prev) => {
+      prev.append("file", file);
+      return prev;
+    });
+  };
+  const deleteFileById = (fileId) => {
+    // console.log(fileId);
+    const fileToDelete = filesInfo.find((info) => info.id === fileId);
+    if (fileToDelete) {
+      URL.revokeObjectURL(fileToDelete.url); // Giải phóng bộ nhớ
+    }
+    const updatedFilesInfo = filesInfo.filter((info) => info.id !== fileId);
+    setFilesInfo(updatedFilesInfo);
+    // setImageUrls(updatedFilesInfo.map((info) => info.url));
+  };
   /**
    * Returns an array of field names that have empty values in the given DTO object.
    *
@@ -59,21 +84,32 @@ export const CateDataProvider = ({ children }) => {
       }
     };
     try {
+      setLoading(true);
       const response = await sendData(dto, params.get("cateId")); // nơi id vào
       if (!response.success) {
         showNotification("error", response.err); // err: text
         return;
       }
-      showNotification("success", response.successMessage);
-      setIsSubmit((prevState) => !prevState);
+      const imageResponse = await uploadMultipleFiles(response.data, formData);
+      if (imageResponse.success) {
+        showNotification("success", "success upload");
+        setIsSubmit((prevState) => !prevState);
+      } else {
+        const exceptions = await imageResponse.json();
+        showNotification("error", exceptions.message);
+      }
     } catch (error) {
       console.error("Error:", error);
       showNotification("error", error.message);
     }
+    setLoading(false);
   };
   return (
     <CategoryContextData.Provider
       value={{
+        addFile,
+        deleteFileById,
+        filesInfo,
         dto,
         setDto,
         isSubmit,
@@ -81,6 +117,7 @@ export const CateDataProvider = ({ children }) => {
         setCategories,
         dropdownCategories,
         setDropdownCategories,
+        loading,
         handleSubmit,
       }}
     >

@@ -1,14 +1,14 @@
 "use client";
 import React, { useContext, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import DropdownRendered from "@/app/products/(components)/DropdownRendered";
 import InputRendered from "@/app/products/(components)/InputRendered";
 import CheckboxesTags from "@/app/products/(components)/CheckBoxesTags";
 import {
+  fetchImages,
   getProductById,
   productConnectedEntities,
 } from "@/services/ProductService";
-import ImagesComponent from "@/app/products/(components)/Images";
 import { DtoContext } from "@/app/context/DataProvider";
 import {
   CategoryT,
@@ -20,20 +20,10 @@ import {
   SupplierT,
   TagT,
 } from "@/Type/type";
-
-// const categories = [{ id: 1, name: "123" }];
-const images = [
-  { id: 1, key: "123" },
-  { id: 2, key: "123" },
-  { id: 3, key: "123" },
-  { id: 4, key: "123" },
-  { id: 5, key: "123" },
-  { id: 6, key: "123" },
-  { id: 7, key: "123" },
-  { id: 8, key: "123" },
-  { id: 9, key: "123" },
-  { id: 10, key: "123" },
-];
+import ImagesComponent, {
+  handleFetchAndResizeImage,
+} from "@/app/products/(components)/Images";
+import Loading from "@/components/Loading";
 
 export const target = [
   "product_name",
@@ -50,9 +40,14 @@ export const target = [
 const ActionPage = () => {
   const pathname = usePathname();
   const [descriptionInput, setDescriptionInput] = useState("");
+  const [resizedImage, setResizedImage] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [reloadFlag, setReloadFlag] = useState(false);
   const params = useSearchParams();
   // @ts-ignore
-  const { dto, setDto, updateState, handleSubmit } = useContext(DtoContext);
+  const { setDto, updateState, handleSubmit, resizeAction } =
+    useContext(DtoContext);
   // Data fetched from server
   const [productById, setDataProduct] = useState<Product>({
     productId: 0,
@@ -120,17 +115,44 @@ const ActionPage = () => {
       }
     };
     fetchData();
+  }, []);
+
+  useEffect(() => {
     if (pathname === "/products/edit") {
       const productId = params.get("productId");
-      const fetchData = async () => {
+      const fetchProduct = async () => {
         const response = await getProductById(productId);
-
-        setDto(response);
-        setDataProduct(response);
+        setDto(response.data);
+        setDataProduct(await response?.data);
       };
-      fetchData();
+      fetchProduct();
     }
   }, [params, pathname, setDto]);
+
+  useEffect(() => {
+    const productId = params.get("productId");
+    const fetchImagesData = async () => {
+      // oldImages [keys, urls]
+      const oldImages = await fetchImages(productId);
+      if (oldImages.success) {
+        const data = oldImages.data;
+        if (data) {
+          // @ts-ignore
+          data.forEach((imageUrl) => {
+            // @ts-ignore
+            handleFetchAndResizeImage(
+              imageUrl,
+              setResizedImage,
+              setImageLoading,
+            );
+          });
+        }
+      }
+    };
+    setLoading(true);
+    fetchImagesData();
+    setLoading(false);
+  }, [reloadFlag, params]);
   const pathSegments = pathname.split("/");
   const modeName = pathSegments.pop();
   return (
@@ -240,8 +262,16 @@ const ActionPage = () => {
             </div>
 
             {/*Images.jsx*/}
-            <ImagesComponent productId={params.get("productId")} />
-
+            {loading ? (
+              <Loading />
+            ) : (
+              <ImagesComponent
+                imageLoading={imageLoading}
+                resizedImage={resizedImage}
+                setReloadFlag={setReloadFlag}
+                productId={params.get("productId")}
+              />
+            )}
             {/*Description*/}
             <div className="-mx-3 mb-2 flex flex-wrap">
               <div className="w-full px-3">

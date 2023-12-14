@@ -17,20 +17,23 @@ const handleFetchError = (err, customMessage = "Error fetching data:") => {
   throw err;
 };
 
-const fetchWithAuth = async (url, method, dto = null) => {
-  try {
-    const res = await fetch(url, {
-      method: method,
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeader(),
-      },
-      body: dto ? JSON.stringify(dto) : null,
-    });
+const options1 = (method, dto) => {
+  return {
+    method: method,
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
+    body: dto ? JSON.stringify(dto) : null,
+  };
+};
 
+const fetchWithAuth = async (url = null, option) => {
+  try {
+    const res = await fetch(url, option);
     if (res.status === 200) {
       const responseData =
-        method === "GET" ? await res.json() : await res.text();
+        option.method === "GET" ? await res.json() : await res.text();
       return {
         data: responseData,
         success: true,
@@ -48,7 +51,7 @@ const fetchWithAuth = async (url, method, dto = null) => {
   } catch (err) {
     return handleFetchError(
       err,
-      `Error when sending ${method} request to backend:`,
+      `Error when sending ${option.method} request to backend:`,
     );
   }
 };
@@ -57,22 +60,31 @@ export const fetchPageAdmin = async (q, page, size, sortField, sortDir) => {
     `${BASE_URL_ADMIN}/page?page=${
       page - 1
     }&size=${size}&q=${q}&sortField=${sortField}&sortDir=${sortDir}`,
-    "GET",
+    options1("GET", null),
   );
 };
 
 export const sendDataToBackend = async (dto) => {
-  return fetchWithAuth(`${BASE_URL_ADMIN}/create`, "POST", dto);
+  return fetchWithAuth(`${BASE_URL_ADMIN}/create`, options1("POST", dto));
 };
 
 export const sendUpdateDataToBackend = async (id, dto) => {
-  return fetchWithAuth(`${BASE_URL_ADMIN}/update?userId=${id}`, "PUT", dto);
+  return fetchWithAuth(
+    `${BASE_URL_ADMIN}/update?userId=${id}`,
+    options1("PUT", dto),
+  );
 };
 
 export const getUserById = async (id) => {
-  return fetchWithAuth(`${BASE_URL_ADMIN}/get?userId=${id}`, "GET");
+  return fetchWithAuth(
+    `${BASE_URL_ADMIN}/get?userId=${id}`,
+    options1("GET", null),
+  );
 };
 
 export const deleteUser = async (id) => {
-  return fetchWithAuth(`${BASE_URL_ADMIN}/delete?userId=${id}`, "DELETE");
+  return fetchWithAuth(
+    `${BASE_URL_ADMIN}/delete?userId=${id}`,
+    options1("POST", null),
+  );
 };

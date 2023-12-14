@@ -17,6 +17,7 @@ export type Bill = {
 export type Category = {
   id: number;
   categoryName: string;
+  image: string;
   parentCategory: ParentCategory;
 };
 export type ParentCategory = {

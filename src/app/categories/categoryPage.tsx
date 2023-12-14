@@ -4,15 +4,15 @@ import React, { useContext, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { CircularProgress } from "@mui/joy";
 import { Category } from "@/Type/type";
-import { TableProps } from "@/app/products/(components)/Products";
+import { TableProps } from "@/app/products/(components)/ProductPage";
 import { deleteCategory, fetchCategories } from "@/services/CategoryService";
 import PaginationTable from "@/app/products/(components)/PaginationTable";
 import Search from "@/app/products/(components)/Search";
 import SortBar from "@/app/products/(components)/SortButtons";
 import { MenuItem } from "@mui/material";
-import AddButton from "@/components/AddButton";
 import { useNotification } from "@/app/context/NotificationContext";
 import { CategoryContextData } from "@/app/context/CategoryDataContext";
+import AddButton from "@/app/categories/(component)/AddButton";
 
 const LazyLoadedTableBody = dynamic(
   () => import("./(component)/LazyLoadedTbodyCategory"),
@@ -73,7 +73,7 @@ const CategoryPage: React.FC<TableProps> = ({ searchParams }) => {
   const handleDelete = async (categoryId: number) => {
     try {
       const res = await deleteCategory(categoryId);
-      if (res.success) showNotification("success", res.successMessage);
+      if (res.success) showNotification("success", res.data);
       else showNotification("error", res.err);
       setIsDelete((prev) => !prev);
     } catch (error) {

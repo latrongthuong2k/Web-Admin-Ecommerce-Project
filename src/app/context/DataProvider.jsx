@@ -1,16 +1,12 @@
 "use client";
 import React, { createContext, useState } from "react";
 import {
+  deleteImagesFromServer,
   sendDataToBackend,
   sendUpdateDataToBackend,
 } from "@/services/ProductService";
-import {
-  deleteImagesFromServer,
-  uploadMultipleFiles,
-} from "@/services/serverFetch";
 import { useNotification } from "@/app/context/NotificationContext";
 import { v4 as uuidV4 } from "uuid";
-import { useRouter } from "next/navigation";
 
 export const DtoContext = createContext(undefined);
 export const DataProvider = ({ children }) => {
@@ -27,17 +23,15 @@ export const DataProvider = ({ children }) => {
     description: "",
     // Thêm các trạng thái khác ở đây
   });
-  // const [imageUrls, setImageUrls] = useState([]);
-  const router = useRouter();
   const [formData, setFormData] = useState(new FormData());
   const [filesInfo, setFilesInfo] = useState([]);
+  const [resizeAction, setResizeAction] = useState(true);
   const { showNotification } = useNotification();
   // Thêm file
   const addFile = (file) => {
-    const fileId = uuidV4(); // Hàm tạo ID duy nhất
+    const fileId = uuidV4();
     const fileUrl = URL.createObjectURL(file);
     setFilesInfo((prev) => [...prev, { id: fileId, url: fileUrl }]);
-
     setFormData((prev) => {
       prev.append("file", file);
       return prev;
@@ -153,17 +147,17 @@ export const DataProvider = ({ children }) => {
         showNotification("error", response.err);
       }
       if (formData.entries().next().value) {
-        try {
-          const uploadResponse = await uploadMultipleFiles(productId, formData);
-          if (uploadResponse.status !== 200) {
-            showNotification("error", "Ops something wrong!");
-            return;
-          }
-          showNotification("success", "Data sent successfully!");
-        } catch (uploadError) {
-          console.error("Upload error:", uploadError);
-          showNotification("error", "Failed to create product!");
-        }
+        // try {
+        //   const uploadResponse = await uploadMultipleFiles(productId, formData);
+        //   if (uploadResponse.status !== 200) {
+        //     showNotification("error", response.message);
+        //     return;
+        //   }
+        //   showNotification("success", "Data sent successfully!");
+        // } catch (uploadError) {
+        //   console.error("Upload error:", uploadError);
+        //   showNotification("error", "Failed to create product!");
+        // }
       } else showNotification("success", "Data sent successfully!");
     } catch (error) {
       console.error("Error:", error);
@@ -177,6 +171,8 @@ export const DataProvider = ({ children }) => {
       value={{
         dto,
         setDto,
+        resizeAction,
+        setResizeAction,
         updateState,
         handleSubmit,
         addFile,

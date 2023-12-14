@@ -4,7 +4,7 @@ import { CategoryContextData } from "@/app/context/CategoryDataContext";
 
 const InputForCategory = ({ modeName, title, showTitle, defaultValue }) => {
   const [value, setValue] = useState(defaultValue.categoryName || "");
-  const { dto, setDto } = useContext(CategoryContextData);
+  const { setDto } = useContext(CategoryContextData);
   const [error, setError] = useState("");
   useEffect(() => {
     setValue(defaultValue.categoryName || "");

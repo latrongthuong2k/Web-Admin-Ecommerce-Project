@@ -7,8 +7,8 @@ import dynamic from "next/dynamic";
 import { deleteProduct, fetchPageProduct } from "@/services/ProductService";
 import SortBar from "@/app/products/(components)/SortButtons";
 import { MenuItem } from "@mui/material";
-import AddButton from "@/components/AddButton";
 import { useNotification } from "@/app/context/NotificationContext";
+import AddButton from "@/app/products/(components)/AddButton";
 
 export type Product = {
   id: number;

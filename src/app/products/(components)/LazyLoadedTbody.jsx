@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import EditNoteTwoToneIcon from "@mui/icons-material/EditNoteTwoTone";
-import { tdRender, tdRender2 } from "./Products";
+import { tdRender, tdRender2 } from "./ProductPage";
 import { usePathname } from "next/navigation";
 
 function formatDate(dateString) {

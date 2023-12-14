@@ -1,5 +1,5 @@
 import React from "react";
-import Products from "@/app/products/(components)/Products";
+import Products from "@/app/products/(components)/ProductPage";
 import { DataProvider } from "@/app/context/DataProvider";
 
 const Page = ({ searchParams }) => {

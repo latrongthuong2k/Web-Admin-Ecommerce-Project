@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import EditNoteTwoToneIcon from "@mui/icons-material/EditNoteTwoTone";
-import { tdRender } from "@/app/products/(components)/Products";
+import { tdRender } from "@/app/products/(components)/ProductPage";
 import { ModalContext } from "@/app/context/ModalContext";
 import { getBillById } from "@/services/OrdersService";
 import DropdownOrderStatus from "@/app/orders/(component)/DropdownOrderStatus";

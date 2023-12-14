@@ -1,6 +1,5 @@
 "use server";
 import { cookies } from "next/headers";
-import { authCookieGetter } from "./routeConfig";
 
 // DASHBOARD SERVICE
 //--------------------------------------------
@@ -105,74 +104,3 @@ export const validateToken = async () => {
 //     throw { message: e.message, type: "uploadError" };
 //   }
 // };
-const getDefaultOptions = (method, body = null) => {
-  const authCookie = authCookieGetter()
-    ? authCookieGetter()
-    : "UnAuthenticated";
-  const headers = {
-    "Content-Type": "application/json",
-    Cookie: `auth-token=${authCookie}`,
-  };
-
-  // Không set Content-Type là application/json nếu body là FormData
-  if (body instanceof FormData) {
-    delete headers["Content-Type"];
-  }
-
-  const options = {
-    method: method,
-    headers: headers,
-    credentials: "include",
-  };
-
-  if (body) {
-    options.body = body instanceof FormData ? body : JSON.stringify(body);
-  }
-
-  return options;
-};
-export const uploadMultipleFiles = async (productId, formData) => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${productId}`,
-      getDefaultOptions("POST", formData),
-    );
-    return { success: true, status: response.status };
-  } catch (e) {
-    console.log("Có lỗi: " + e.message);
-    throw { message: e.message, type: "uploadError" };
-  }
-};
-
-export const fetchImages = async (id) => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${id}`,
-      getDefaultOptions("GET"),
-    );
-    if (response.ok) {
-      const data = await response.json();
-      return { success: true, status: response.status, data: data };
-    } else {
-      return { success: false, status: response.status };
-    }
-  } catch (e) {
-    console.log("Có lỗi: " + e.message);
-    throw { message: e.message, type: "fetchError" };
-  }
-};
-export const deleteImagesFromServer = async ({ id, imageKey }) => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images?productId=${id}&imageKey=${imageKey}`,
-      getDefaultOptions("DELETE"),
-    );
-    if (!response.ok) {
-      throw new Error(`Deletion failed with status ${response.status}`);
-    }
-    return { success: true, status: response.status };
-  } catch (e) {
-    console.log("Có lỗi: " + e.message);
-    throw { message: e.message, type: "deleteError" };
-  }
-};

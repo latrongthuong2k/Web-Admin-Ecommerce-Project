@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
 import EditNoteTwoToneIcon from "@mui/icons-material/EditNoteTwoTone";
-import { tdRender } from "@/app/products/(components)/Products";
+import { tdRender } from "@/app/products/(components)/ProductPage";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ModalContext } from "@/app/context/ModalContext";
-import { adminUpdateContent } from "@/components/AddButton";
 import { getUserById } from "@/services/AdminService";
+import { adminUpdateContent } from "@/app/admins/(component)/AddButton";
 
 const LazyLoadedTableBody = ({ handle, users }) => {
   const { handleOpen, setTitle, setContent, setMode } =

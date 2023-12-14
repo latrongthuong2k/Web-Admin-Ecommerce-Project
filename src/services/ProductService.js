@@ -1,5 +1,7 @@
 "use server";
 import { authCookieGetter } from "@/services/routeConfig";
+import axios from "axios";
+import sharp from "sharp";
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product`;
 
@@ -128,7 +130,16 @@ export const getProductById = async (id) => {
         ...getAuthHeader(),
       },
     });
-    return await response.json();
+    if (response.ok) {
+      return { data: await response.json() };
+    } else {
+      const errResponse = await response.json();
+      return {
+        ...errResponse,
+        err: errResponse.message,
+        success: false,
+      };
+    }
   } catch (err) {
     return handleFetchError(err, "Error fetching product data:");
   }
@@ -163,5 +174,115 @@ export const deleteProduct = async (id) => {
     }
   } catch (err) {
     return handleFetchError(err, "Error when sending data to backend:");
+  }
+};
+
+const defaultOptions = (method, body = null) => {
+  const authCookie = authCookieGetter()
+    ? authCookieGetter()
+    : "UnAuthenticated";
+  const headers = {
+    "Content-Type": "application/json",
+    Cookie: `auth-token=${authCookie}`,
+  };
+
+  // Không set Content-Type là application/json nếu body là FormData
+  if (body instanceof FormData) {
+    delete headers["Content-Type"];
+  }
+
+  const options = {
+    method: method,
+    headers: headers,
+    credentials: "include",
+  };
+
+  if (body) {
+    options.body = body instanceof FormData ? body : JSON.stringify(body);
+  }
+
+  return options;
+};
+export const uploadMultipleFiles = async (productId, formData) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${productId}`,
+      defaultOptions("POST", formData),
+    );
+    return { success: true, status: response.status };
+  } catch (e) {
+    console.log("Error: " + e.message);
+    throw { message: e.message, type: "fetchError" };
+  }
+};
+
+export const fetchImages = async (id) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/get-product-images/${id}`,
+      defaultOptions("GET"),
+    );
+    if (response.ok) {
+      const res = await response.json();
+      return {
+        success: true,
+        data: res,
+      };
+    } else {
+      return { success: false, status: response.status };
+    }
+  } catch (e) {
+    console.log("Có lỗi: " + e.message);
+    throw { message: e.message, type: "fetchError" };
+  }
+};
+
+export async function fetchAndResizeImage(url) {
+  try {
+    const response = await axios({ url, responseType: "arraybuffer" });
+    const imageBuffer = Buffer.from(response.data, "binary");
+
+    const image = sharp(imageBuffer);
+    const metadata = await image.metadata();
+
+    let resizedBuffer;
+    if (metadata.format === "jpeg") {
+      resizedBuffer = await image
+        .resize(300, 300)
+        .jpeg({ quality: 20 })
+        .toBuffer();
+    } else if (metadata.format === "png") {
+      resizedBuffer = await image
+        .resize(300, 300)
+        .png({ compressionLevel: 9, palette: true })
+        .toBuffer();
+    } else {
+      // các định dạng khác
+      resizedBuffer = await image.resize(300, 300).toBuffer();
+    }
+
+    return {
+      base64: resizedBuffer.toString("base64"),
+      format: metadata.format,
+    };
+  } catch (error) {
+    console.error("Lỗi khi tải hoặc xử lý ảnh:", error);
+    throw error;
+  }
+}
+
+export const deleteImagesFromServer = async ({ id, imageKey }) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images?productId=${id}&imageKey=${imageKey}`,
+      defaultOptions("DELETE"),
+    );
+    if (!response.ok) {
+      throw new Error(`Deletion failed with status ${response.status}`);
+    }
+    return { success: true, status: response.status };
+  } catch (e) {
+    console.log("Có lỗi: " + e.message);
+    throw { message: e.message, type: "deleteError" };
   }
 };
