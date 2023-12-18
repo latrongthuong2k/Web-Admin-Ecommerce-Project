@@ -1,11 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import Image from "next/image";
 import MyDropzone from "@/app/products/(components)/MyDropzone";
-import { CiWarning } from "react-icons/ci";
+
 import { DtoContext } from "@/app/context/DataProvider";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
 import { CircularProgress } from "@mui/joy";
-import { ModalContext } from "@/app/context/ModalContext";
 
 const ImagesComponent = ({
   imageLoading,
@@ -15,34 +14,10 @@ const ImagesComponent = ({
 }) => {
   const { handleDeleteImageFromServer, filesInfo, deleteFileById } =
     useContext(DtoContext);
-  const { handleOpen, setTitle, setContent, setHandleDelete, setMode } =
-    useContext(ModalContext);
-
-  const AnnounceModal = (callback) => {
-    handleOpen();
-    setTitle("Announce");
-    setContent(
-      <div className={"text-center"}>
-        <p className={"mb-4 text-3xl font-bold caret-amber-600"}>Important</p>
-        <div className={"mb-3 flex justify-center"}>
-          <CiWarning className={"text-5xl "} />
-        </div>
-        <p className={"font-bold"}>
-          This action will delete image forever, are you sure to delete this
-          image ?
-        </p>
-      </div>,
-    );
-    setMode("announce");
-    setHandleDelete(() => callback);
-  };
 
   const enhancedDeleteImagesFromServer = (productId, awsUrl) => {
-    AnnounceModal(() =>
-      handleDeleteImageFromServer(productId, awsUrl, setReloadFlag),
-    );
-    // handleDeleteImageFromServer(productId, awsUrl);
-    // setReloadFlag((prev) => !prev);
+    handleDeleteImageFromServer(productId, awsUrl);
+    setReloadFlag((prev) => !prev);
   };
   const [imageCoreLoading, setLoading] = useState(false);
 

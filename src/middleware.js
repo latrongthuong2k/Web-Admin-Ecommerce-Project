@@ -27,7 +27,7 @@ export async function middleware(request) {
 
   if (isValid === true) {
     if (isLoginPath) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/products", request.url));
     } else if (isProtectedPath) {
       return NextResponse.next();
     }

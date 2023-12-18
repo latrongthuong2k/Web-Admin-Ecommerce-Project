@@ -3,7 +3,7 @@ import { CircularProgress } from "@mui/joy";
 
 const Loading = () => {
   return (
-    <div className={"flex justify-center p-5"}>
+    <div className={"flex h-full items-center justify-center p-5"}>
       <CircularProgress />
     </div>
   );

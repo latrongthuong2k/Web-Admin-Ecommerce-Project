@@ -38,14 +38,14 @@ const AdminPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
   const page = searchParams?.page || 1;
   const sortField = searchParams?.sortField || "firstName";
   const sortDir = searchParams?.sortDir || "asc";
-  const [isDelete, setIsDelete] = useState<boolean>(false);
+  const [isDelete, setIsDelete] = useState(false);
+  const [isCreate, setIsCreate] = useState(false);
   // @ts-ignore
   const { showNotification } = useNotification();
   useEffect(() => {
     const fetchData = async () => {
       try {
         const usersPage = await fetchPageAdmin(q, page, 10, sortField, sortDir);
-        console.log(usersPage);
         if (usersPage) {
           setTotalPage(usersPage.data.totalPages);
           setUsers(usersPage.data.users);
@@ -55,7 +55,7 @@ const AdminPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
       }
     };
     fetchData();
-  }, [isDelete, page, q, showNotification, sortDir, sortField]);
+  }, [isCreate, isDelete, page, q, showNotification, sortDir, sortField]);
   // handle delete
   const handleDelete = async (userId: number) => {
     try {
@@ -68,9 +68,13 @@ const AdminPage: React.FC<UserTableProps> = ({ searchParams, targetProps }) => {
     }
   };
 
+  const handleReload = () => {
+    setIsCreate((prev) => !prev);
+  };
+
   return (
     <div className="container mx-auto mt-14">
-      <AddButton buttonName={"Add new admin user"} />
+      <AddButton callback={handleReload} buttonName={"Add new admin user"} />
       <div className="flex justify-between">
         <Search />
         <SortBar

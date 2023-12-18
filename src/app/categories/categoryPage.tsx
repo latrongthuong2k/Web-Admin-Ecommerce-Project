@@ -107,6 +107,7 @@ const CategoryPage: React.FC<TableProps> = ({ searchParams }) => {
             </tr>
           </thead>
           {/*T-Body*/}
+
           <LazyLoadedTableBody
             handleDelete={handleDelete}
             categoriesTableData={categories}

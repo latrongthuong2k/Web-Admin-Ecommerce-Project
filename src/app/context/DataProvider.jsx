@@ -4,9 +4,11 @@ import {
   deleteImagesFromServer,
   sendDataToBackend,
   sendUpdateDataToBackend,
+  uploadMultipleFiles,
 } from "@/services/ProductService";
 import { useNotification } from "@/app/context/NotificationContext";
 import { v4 as uuidV4 } from "uuid";
+import { useRouter } from "next/navigation";
 
 export const DtoContext = createContext(undefined);
 export const DataProvider = ({ children }) => {
@@ -14,19 +16,19 @@ export const DataProvider = ({ children }) => {
     productName: "",
     price: 0,
     stockQuantity: 0,
-    category: 0,
+    categoryId: 0,
     colors: [],
     sizes: [],
     tags: [],
     clientTypes: [],
-    supplier: 0,
+    supplierId: 0,
     description: "",
     // Thêm các trạng thái khác ở đây
   });
   const [formData, setFormData] = useState(new FormData());
   const [filesInfo, setFilesInfo] = useState([]);
-  const [resizeAction, setResizeAction] = useState(true);
   const { showNotification } = useNotification();
+  const router = useRouter();
   // Thêm file
   const addFile = (file) => {
     const fileId = uuidV4();
@@ -85,18 +87,9 @@ export const DataProvider = ({ children }) => {
     }, []);
   };
 
-  /**
-   * Handles the deletion of an image from the server.
-   *
-   * @param {string} id - The ID of the image to delete.
-   * @param {string} imageKey - The key of the image to delete.
-   * @returns {void}
-   *
-   * @throws {Error} If the deletion fails.
-   */
-  const handleDeleteImageFromServer = (id, imageKey) => {
+  const handleDeleteImageFromServer = (productId, awsUrl, setReloadFlag) => {
     // console.log("inraaaa//" + id, imageKey);
-    deleteImagesFromServer({ id, imageKey })
+    deleteImagesFromServer(productId, awsUrl)
       .then((response) => {
         if (response.status === 200) {
           showNotification("success", "Data delete successfully !");
@@ -108,6 +101,7 @@ export const DataProvider = ({ children }) => {
         console.log("Có lỗi: ", error.message);
         showNotification("error", "Failed to delete image !");
       });
+    setReloadFlag((prev) => !prev);
   };
 
   /**
@@ -145,20 +139,34 @@ export const DataProvider = ({ children }) => {
       const response = await sendData(dto, productId);
       if (!response.success) {
         showNotification("error", response.err);
+      } else {
+        if (formData.entries().next().value) {
+          try {
+            const uploadResponse = await uploadMultipleFiles(
+              response.productId,
+              formData,
+            );
+            if (!uploadResponse.success) {
+              showNotification("error", response.message);
+              return;
+            }
+            if (action === "create")
+              showNotification("success", "Product create successfully!");
+            else showNotification("success", "Product update successfully!");
+            router.push("/products");
+          } catch (uploadError) {
+            console.error("Upload error:", uploadError);
+            if (action === "create")
+              showNotification("error", "Failed to create product!");
+            else showNotification("error", "Failed to update product!");
+          }
+        } else {
+          if (action === "create")
+            showNotification("success", "Product create successfully!");
+          else showNotification("success", "Product update successfully!");
+          router.push("/products");
+        }
       }
-      if (formData.entries().next().value) {
-        // try {
-        //   const uploadResponse = await uploadMultipleFiles(productId, formData);
-        //   if (uploadResponse.status !== 200) {
-        //     showNotification("error", response.message);
-        //     return;
-        //   }
-        //   showNotification("success", "Data sent successfully!");
-        // } catch (uploadError) {
-        //   console.error("Upload error:", uploadError);
-        //   showNotification("error", "Failed to create product!");
-        // }
-      } else showNotification("success", "Data sent successfully!");
     } catch (error) {
       console.error("Error:", error);
       showNotification("error", error.message);
@@ -171,8 +179,6 @@ export const DataProvider = ({ children }) => {
       value={{
         dto,
         setDto,
-        resizeAction,
-        setResizeAction,
         updateState,
         handleSubmit,
         addFile,

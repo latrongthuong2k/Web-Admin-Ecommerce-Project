@@ -9,12 +9,13 @@ import SortBar from "@/app/products/(components)/SortButtons";
 import { MenuItem } from "@mui/material";
 import { useNotification } from "@/app/context/NotificationContext";
 import AddButton from "@/app/products/(components)/AddButton";
+import { AnnounceModalProvider } from "@/app/context/ModalContext";
 
 export type Product = {
   id: number;
   productName: string;
   quantity: number;
-  createdAt: string; // Sử dụng string cho ngày tháng để đơn giản hóa
+  createdAt: string;
   price: number;
   status: number;
 };
@@ -172,7 +173,9 @@ const Products: React.FC<TableProps> = ({ searchParams }) => {
             </tr>
           </thead>
           {/*T-Body*/}
-          <LazyLoadedTableBody handle={handleDelete} products={products} />
+          <AnnounceModalProvider>
+            <LazyLoadedTableBody handle={handleDelete} products={products} />
+          </AnnounceModalProvider>
         </table>
       </div>
       <div className={"ml-2 mt-6"}>

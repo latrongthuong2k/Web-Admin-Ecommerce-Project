@@ -6,7 +6,6 @@ import Autocomplete from "@mui/material/Autocomplete";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import { Chip } from "@mui/material";
-import { target } from "@/app/products/[actions]/ActionPage";
 import { DtoContext } from "@/app/context/DataProvider";
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -16,15 +15,21 @@ export default function CheckboxesTags({
   props,
   title,
   showTitle,
+  isDataLoaded,
   defaultValue,
 }) {
-  const { dto, updateState } = useContext(DtoContext);
-  const [stage, editStage] = useState([]);
-
-  const handleChange = (event, newValue) => {
-    editStage(newValue);
-    updateState({ field: title, value: newValue });
+  const { updateState } = useContext(DtoContext);
+  const [idData, editIdData] = useState([]);
+  const handleChange = (event, array) => {
+    editIdData(array);
+    if (array.length > 0) {
+      updateState({ field: title, value: array });
+    }
   };
+  useEffect(() => {
+    updateState({ field: title, value: defaultValue });
+    // setValue(defaultValue);
+  }, [defaultValue, isDataLoaded]);
   return (
     <div className=" px-3 md:w-1/2">
       <Autocomplete
@@ -34,7 +39,7 @@ export default function CheckboxesTags({
         options={props}
         disableCloseOnSelect
         onChange={handleChange}
-        value={stage.length ? stage : defaultValue}
+        value={idData.length ? idData : defaultValue}
         isOptionEqualToValue={(option, value) => option.id === value.id}
         getOptionLabel={(option) => option.name}
         renderOption={(props, option, { selected }) => {

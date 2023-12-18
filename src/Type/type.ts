@@ -56,48 +56,48 @@ export type UserTableProps = {
 };
 
 export type DataState = {
-  categories: CategoryT[];
-  colors: ColorT[];
-  sizes: SizeT[];
-  tags: TagT[];
-  clientTypes: ClientTypeT[];
-  suppliers: SupplierT[];
+  categories: PropsT[];
+  colors: PropsT[];
+  sizes: PropsT[];
+  tags: PropsT[];
+  clientTypes: PropsT[];
+  suppliers: PropsT[];
 };
-export type CategoryT = {
-  id: number;
-  categoryName: string;
-};
-export type ColorT = {
-  id: number;
-  colorName: string;
-};
-export type SizeT = {
-  id: number;
-  sizeValue: string;
-};
-export type TagT = {
-  id: number;
-  tagName: string;
-};
-export type ClientTypeT = {
-  id: number;
-  typeName: string;
-};
-export type SupplierT = {
-  id: number;
-  supplierName: string;
-};
+
+// export type CategoryT = {
+//   id: number;
+//   categoryName: string;
+// };
+// export type ColorT = {
+//   id: number;
+//   colorName: string;
+// };
+// export type SizeT = {
+//   id: number;
+//   sizeValue: string;
+// };
+// export type TagT = {
+//   id: number;
+//   tagName: string;
+// };
+// export type ClientTypeT = {
+//   id: number;
+//   typeName: string;
+// };
+// export type SupplierT = {
+//   id: number;
+//   supplierName: string;
 // Product
 export type Product = {
-  productId: number;
+  id: number;
   productName: string;
   price: number;
   stockQuantity: number;
-  category: number;
-  colors: ColorT[];
-  sizes: SizeT[];
-  tags: TagT[];
-  clientTypes: ClientTypeT[];
-  supplier: number;
+  categoryId: number;
+  colors: PropsT[];
+  sizes: PropsT[];
+  tags: PropsT[];
+  clientTypes: PropsT[];
+  supplierId: number;
   description: string;
 };

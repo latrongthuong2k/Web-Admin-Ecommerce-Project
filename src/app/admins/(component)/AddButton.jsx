@@ -65,13 +65,15 @@ export const adminUpdateContent = (prevData) => {
     </>
   );
 };
-export default function AddButton({ buttonName }) {
-  const { handleOpen, setTitle, setContent } = useContext(ModalContext);
+export default function AddButton({ callback, buttonName }) {
+  const { handleOpen, setTitle, setContent, setHandleCallback } =
+    useContext(ModalContext);
   // add new
   const adminCustomModal = () => {
     setTitle("Add new Admin");
     setContent(adminAddContent);
     handleOpen();
+    setHandleCallback(() => callback);
   };
   return (
     <div className={"ml-[10px] h-[50px]"}>

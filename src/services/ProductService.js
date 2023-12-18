@@ -1,7 +1,5 @@
 "use server";
 import { authCookieGetter } from "@/services/routeConfig";
-import axios from "axios";
-import sharp from "sharp";
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product`;
 
@@ -70,8 +68,7 @@ export const sendDataToBackend = async (dto) => {
     });
     if (res.status === 200) {
       return {
-        successMessage: await res.text(),
-        productId: res.text(),
+        productId: await res.text(),
         success: true,
         status: res.status,
       };
@@ -102,7 +99,7 @@ export const sendUpdateDataToBackend = async (productId, dto) => {
     if (res.status === 200) {
       return {
         // successMessage: await res.text(),
-        productId: res.text(),
+        productId: await res.text(),
         success: true,
         // status: res.status,
       };
@@ -204,6 +201,9 @@ const defaultOptions = (method, body = null) => {
   return options;
 };
 export const uploadMultipleFiles = async (productId, formData) => {
+  // for (let [key, value] of formData.entries()) {
+  //   console.log(key, value);
+  // }
   try {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images/${productId}`,
@@ -222,8 +222,8 @@ export const fetchImages = async (id) => {
       `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/get-product-images/${id}`,
       defaultOptions("GET"),
     );
+    const res = await response.json();
     if (response.ok) {
-      const res = await response.json();
       return {
         success: true,
         data: res,
@@ -237,44 +237,10 @@ export const fetchImages = async (id) => {
   }
 };
 
-export async function fetchAndResizeImage(url) {
-  try {
-    const response = await axios({ url, responseType: "arraybuffer" });
-    const imageBuffer = Buffer.from(response.data, "binary");
-
-    const image = sharp(imageBuffer);
-    const metadata = await image.metadata();
-
-    let resizedBuffer;
-    if (metadata.format === "jpeg") {
-      resizedBuffer = await image
-        .resize(300, 300)
-        .jpeg({ quality: 20 })
-        .toBuffer();
-    } else if (metadata.format === "png") {
-      resizedBuffer = await image
-        .resize(300, 300)
-        .png({ compressionLevel: 9, palette: true })
-        .toBuffer();
-    } else {
-      // các định dạng khác
-      resizedBuffer = await image.resize(300, 300).toBuffer();
-    }
-
-    return {
-      base64: resizedBuffer.toString("base64"),
-      format: metadata.format,
-    };
-  } catch (error) {
-    console.error("Lỗi khi tải hoặc xử lý ảnh:", error);
-    throw error;
-  }
-}
-
-export const deleteImagesFromServer = async ({ id, imageKey }) => {
+export const deleteImagesFromServer = async (productId, awsUrl) => {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/product-images?productId=${id}&imageKey=${imageKey}`,
+      `${process.env.NEXT_PUBLIC_BE_URL}/api/v1/product/delete-product-image?productId=${productId}&awsUrl=${awsUrl}`,
       defaultOptions("DELETE"),
     );
     if (!response.ok) {

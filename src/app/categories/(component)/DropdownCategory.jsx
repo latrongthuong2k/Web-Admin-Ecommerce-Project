@@ -42,7 +42,7 @@ const DropdownCategory = ({ props, title, showTitle, defaultValue }) => {
           <MenuItem value={-1}>{"None"}</MenuItem>
           {props?.map((item) => (
             <MenuItem key={item.id} value={item.id}>
-              {item.categoryName}
+              {item.name}
             </MenuItem>
           ))}
           <MenuItem>

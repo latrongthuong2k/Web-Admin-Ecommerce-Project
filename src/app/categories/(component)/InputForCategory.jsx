@@ -2,15 +2,21 @@ import React, { useContext, useEffect, useState } from "react";
 import { FilledInput, FormControl, InputLabel } from "@mui/material";
 import { CategoryContextData } from "@/app/context/CategoryDataContext";
 
-const InputForCategory = ({ modeName, title, showTitle, defaultValue }) => {
-  const [value, setValue] = useState(defaultValue.categoryName || "");
-  const { setDto } = useContext(CategoryContextData);
+const InputForCategory = ({
+  loading,
+  modeName,
+  title,
+  showTitle,
+  defaultValue,
+}) => {
+  const { dto, setDto } = useContext(CategoryContextData);
+  const [value, setValue] = useState(defaultValue.name || "");
   const [error, setError] = useState("");
   useEffect(() => {
-    setValue(defaultValue.categoryName || "");
+    setValue(defaultValue.name || "");
     const fieldName = title.replace(/\s+/g, "");
-    setDto((prev) => ({ ...prev, [fieldName]: defaultValue.categoryName }));
-  }, [defaultValue.categoryName, setDto, title]);
+    setDto((prev) => ({ ...prev, [fieldName]: defaultValue.name }));
+  }, []);
   const validateInput = (field, value) => {
     if (!value || value.trim().length === 0) {
       return "This field cannot be empty.";
@@ -26,7 +32,7 @@ const InputForCategory = ({ modeName, title, showTitle, defaultValue }) => {
     }
     return "";
   };
-
+  console.log(dto);
   const handInput = (e) => {
     const inputValue = e.target.value;
     const fieldError = validateInput(title, inputValue);
@@ -52,7 +58,6 @@ const InputForCategory = ({ modeName, title, showTitle, defaultValue }) => {
           id={title}
           color="secondary"
           type="text"
-          readOnly={modeName === "edit"}
           onChange={handInput}
           value={value}
         />

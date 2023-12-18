@@ -8,6 +8,7 @@ const InputRendered = ({ modeName, title, showTitle, defaultValue }) => {
   const { updateState, dto } = useContext(DtoContext);
   const [error, setError] = useState("");
   useEffect(() => {
+    if (defaultValue) updateState({ field: title, value: defaultValue });
     setValue(defaultValue);
   }, [defaultValue]);
   const validateInput = (field, value) => {

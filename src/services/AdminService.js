@@ -85,6 +85,6 @@ export const getUserById = async (id) => {
 export const deleteUser = async (id) => {
   return fetchWithAuth(
     `${BASE_URL_ADMIN}/delete?userId=${id}`,
-    options1("POST", null),
+    options1("DELETE", null),
   );
 };

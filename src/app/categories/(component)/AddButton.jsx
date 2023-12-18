@@ -6,6 +6,7 @@ import { CategoryContextData } from "@/app/context/CategoryDataContext";
 import { CircularProgress } from "@mui/joy";
 import InputForCategory from "@/app/categories/(component)/InputForCategory";
 import DropdownCategory from "@/app/categories/(component)/DropdownCategory";
+import Image from "next/image";
 
 // for add new
 
@@ -15,9 +16,9 @@ export default function AddButton({ buttonName }) {
   const { setDropdownCategories, filesInfo, addFile, loading } =
     useContext(CategoryContextData);
   const [countImage, setCountImage] = useState(0);
-  const [category, setCategory] = useState();
+  const [categoryDropdownData, setCategoryDropdownData] = useState();
   const [categoryModalContent, setModal] = useState(<></>);
-
+  const [isLoaded, setIsLoaded] = useState(false);
   const handleFileChange = useCallback(
     (event) => {
       addFile(event.target.files[0]);
@@ -30,11 +31,11 @@ export default function AddButton({ buttonName }) {
     const fetchData = async () => {
       const response = await productConnectedEntities();
       // console.log(response.categories);
-      setCategory(response?.categories);
+      setCategoryDropdownData(response?.categories);
       setDropdownCategories(response?.categories);
     };
     fetchData();
-  }, [setDropdownCategories]);
+  }, []);
 
   const categoriesContent = (
     categoryDropdownData,
@@ -48,6 +49,7 @@ export default function AddButton({ buttonName }) {
     ) : (
       <>
         <InputForCategory
+          loading={loading}
           title={"categoryName"}
           modeName={"add"}
           showTitle={"Category name"}
@@ -63,34 +65,31 @@ export default function AddButton({ buttonName }) {
           type="file"
           id="categoryImage"
           name="categoryImage"
-          // className="hidden"
+          className="hidden"
           onChange={handleFileChange}
         />
-        {/*<label*/}
-        {/*  htmlFor="categoryImage"*/}
-        {/*  className="ml-3 inline-block w-1/4 cursor-pointer rounded-xl bg-gray-400 p-2 text-white transition*/}
-        {/* duration-150 ease-in-out hover:bg-gray-600 focus:outline-none focus:ring focus:ring-gray-300"*/}
-        {/*>*/}
-        {/*  <div className={"flex items-center justify-center"}>*/}
-        {/*    <Image*/}
-        {/*      src={"/upload_i.png"}*/}
-        {/*      width={80}*/}
-        {/*      height={80}*/}
-        {/*      alt={"uploadImage"}*/}
-        {/*    />*/}
-        {/*  </div>*/}
-        {/*</label>*/}
+        <label
+          htmlFor="categoryImage"
+          className="ml-3 inline-block w-1/4 cursor-pointer rounded-xl bg-gray-400 p-2 text-white transition
+         duration-150 ease-in-out hover:bg-gray-600 focus:outline-none focus:ring focus:ring-gray-300"
+        >
+          <div className={"flex items-center justify-center"}>
+            <Image
+              src={"/upload_i.png"}
+              width={80}
+              height={80}
+              alt={"uploadImage"}
+            />
+          </div>
+        </label>
       </>
     );
   };
 
-  useEffect(() => {
-    setContent(categoriesContent(category, "", handleFileChange));
-  }, [loading, category, handleFileChange]);
-
   const handleCustomModal = () => {
     setTitle("Add new Category");
     handleOpen();
+    setContent(categoriesContent(categoryDropdownData, "", handleFileChange));
     setMode("add");
   };
   const btnDesign =

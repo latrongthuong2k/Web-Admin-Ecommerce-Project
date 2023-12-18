@@ -9,9 +9,10 @@ import { CircularProgress } from "@mui/joy";
 import InputForCategory from "@/app/categories/(component)/InputForCategory";
 import DropdownCategory from "@/app/categories/(component)/DropdownCategory";
 import Image from "next/image";
+import { CiWarning } from "react-icons/ci";
 
 const LazyLoadedTableBody = ({ handleDelete, categoriesTableData }) => {
-  const { handleOpen, setTitle, setContent, setMode } =
+  const { handleOpen, setTitle, setContent, setMode, setHandleDelete } =
     useContext(ModalContext);
   const { dropdownCategories, loading } = useContext(CategoryContextData);
   const { replace } = useRouter();
@@ -34,6 +35,26 @@ const LazyLoadedTableBody = ({ handleDelete, categoriesTableData }) => {
     handleOpen();
     setMode("update");
   };
+
+  const AnnounceModal = (callback) => {
+    handleOpen();
+    setTitle("Announce");
+    setContent(
+      <div className={"text-center"}>
+        <p className={"mb-4 text-3xl font-bold caret-amber-600"}>Important</p>
+        <div className={"mb-3 flex justify-center"}>
+          <CiWarning className={"text-5xl "} />
+        </div>
+        <p className={"font-bold"}>
+          This action will delete this category forever, are you sure to delete
+          ?
+        </p>
+      </div>,
+    );
+    setMode("announce");
+    setHandleDelete(() => callback);
+  };
+
   return (
     <tbody className="divide-y divide-gray-100 text-sm">
       {categoriesTableData.map((category) => (
@@ -51,8 +72,13 @@ const LazyLoadedTableBody = ({ handleDelete, categoriesTableData }) => {
               <EditNoteTwoToneIcon />
               Edit
             </button>
+
             <button
-              onClick={() => handleDelete(category.id)}
+              onClick={() =>
+                AnnounceModal(() => {
+                  handleDelete(category.id);
+                })
+              }
               className="rounded-[20px] border-4 px-4 py-2 text-red-400 hover:border-red-300 hover:text-red-600"
             >
               Delete
@@ -72,7 +98,6 @@ const categoriesContent = (
   handleFileChange,
   loading,
 ) => {
-  console.log(loading);
   return loading ? (
     <div className={"flex h-full items-center justify-center"}>
       <CircularProgress />

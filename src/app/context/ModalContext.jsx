@@ -24,6 +24,7 @@ export const ModalContext = createContext({
   handleClose: () => {},
   setTitle: () => {},
   setContent: () => {},
+  setMode: () => {},
 });
 
 export const GeneralModal = ({
@@ -32,67 +33,153 @@ export const GeneralModal = ({
   open,
   handleClose,
   handleSubmit,
+  handleDelete,
+  handleCallback,
   mode,
-}) => (
-  <Modal
-    open={open}
-    onClose={handleClose}
-    aria-labelledby="modal-modal-title"
-    aria-describedby="modal-modal-description"
-  >
-    <Box className="absolute left-1/2 top-1/2 h-auto w-[600px] -translate-x-1/2 -translate-y-1/2 transform rounded-[20px] bg-white p-4 shadow-lg">
-      <Box
-        className={"text-center text-lg font-bold uppercase text-gray-600"}
-        id="modal-modal-title"
-        variant="h6"
-        component="h2"
-      >
-        {title}
+}) =>
+  mode === "announce" ? (
+    <Modal
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box className="absolute left-1/2 top-1/2 h-auto w-[600px] -translate-x-1/2 -translate-y-1/2 transform rounded-[20px] bg-white p-4 shadow-lg">
+        <Box
+          className={"text-center text-lg font-bold uppercase text-gray-600"}
+          id="modal-modal-title"
+          variant="h6"
+          component="h2"
+        >
+          {title}
+        </Box>
+        <Box
+          className={"flex h-auto flex-col gap-6 p-5"}
+          id="modal-modal-description"
+          sx={{ mt: 2 }}
+        >
+          {content}
+          <div className={"flex justify-evenly"}>
+            <Button
+              onClick={() => {
+                handleDelete();
+                handleClose();
+              }}
+              variant="contained"
+              className={
+                " w-1/3 self-center bg-cyan-500 uppercase hover:bg-teal-800 "
+              }
+            >
+              Yes
+            </Button>
+            <Button
+              onClick={handleClose}
+              variant="contained"
+              className={
+                "w-1/3 self-center bg-gray-500 uppercase hover:bg-teal-800 "
+              }
+            >
+              Cancel
+            </Button>
+          </div>
+        </Box>
       </Box>
-      <Box
-        className={"flex h-auto flex-col gap-6 p-5"}
-        id="modal-modal-description"
-        sx={{ mt: 2 }}
-      >
-        {content}
-        <div className={"flex justify-evenly"}>
-          <Button
-            onClick={async (e) => {
-              await handleSubmit(
-                e,
-                mode?.toLowerCase() === "add" ? "create" : "update",
-              );
-              handleClose(); // Đóng modal sau khi xử lý
-            }}
-            variant="contained"
-            className={
-              " w-1/3 self-center bg-cyan-500 uppercase hover:bg-teal-800 "
-            }
-          >
-            {mode?.toLowerCase() === "add" ? "Add" : "Update"}
-          </Button>
-          <Button
-            onClick={handleClose}
-            variant="contained"
-            className={
-              "w-1/3 self-center bg-gray-500 uppercase hover:bg-teal-800 "
-            }
-          >
-            {"Close"}
-          </Button>
-        </div>
+    </Modal>
+  ) : (
+    <Modal
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box className="absolute left-1/2 top-1/2 h-auto w-[600px] -translate-x-1/2 -translate-y-1/2 transform rounded-[20px] bg-white p-4 shadow-lg">
+        <Box
+          className={"text-center text-lg font-bold uppercase text-gray-600"}
+          id="modal-modal-title"
+          variant="h6"
+          component="h2"
+        >
+          {title}
+        </Box>
+        <Box
+          className={"flex h-auto flex-col gap-6 p-5"}
+          id="modal-modal-description"
+          sx={{ mt: 2 }}
+        >
+          {content}
+          <div className={"flex justify-evenly"}>
+            <Button
+              onClick={async (e) => {
+                await handleSubmit(
+                  e,
+                  mode?.toLowerCase() === "add" ? "create" : "update",
+                );
+                if (handleCallback) handleCallback();
+                handleClose(); // Đóng modal sau khi xử lý
+              }}
+              variant="contained"
+              className={
+                " w-1/3 self-center bg-cyan-500 uppercase hover:bg-teal-800 "
+              }
+            >
+              {mode?.toLowerCase() === "add" ? "Add" : "Update"}
+            </Button>
+            <Button
+              onClick={handleClose}
+              variant="contained"
+              className={
+                "w-1/3 self-center bg-gray-500 uppercase hover:bg-teal-800 "
+              }
+            >
+              {"Close"}
+            </Button>
+          </div>
+        </Box>
       </Box>
-    </Box>
-  </Modal>
-);
+    </Modal>
+  );
+// product
+export const AnnounceModalProvider = ({ children }) => {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("Default Title");
+  const [content, setContent] = useState("Default Content");
+  const [handleDelete, setHandleDelete] = useState();
 
+  const [mode, setMode] = useState("");
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  return (
+    <ModalContext.Provider
+      value={{
+        handleOpen,
+        handleClose,
+        setTitle,
+        setContent,
+        setHandleDelete,
+        setMode,
+      }}
+    >
+      {children}
+      <GeneralModal
+        title={title}
+        content={content}
+        open={open}
+        handleClose={handleClose}
+        handleDelete={handleDelete}
+        mode={mode}
+      />
+    </ModalContext.Provider>
+  );
+};
+
+// users
 export const UserModalProvider = ({ children }) => {
   const { handleSubmit } = useContext(AdminDataContext);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("Default Title");
   const [content, setContent] = useState("Default Content");
   const [mode, setMode] = useState("add");
-
+  const [handleCallback, setHandleCallback] = useState();
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -104,6 +191,7 @@ export const UserModalProvider = ({ children }) => {
         setTitle,
         setContent,
         setMode,
+        setHandleCallback,
       }}
     >
       {children}
@@ -113,6 +201,7 @@ export const UserModalProvider = ({ children }) => {
         open={open}
         handleClose={handleClose}
         handleSubmit={handleSubmit}
+        handleCallback={handleCallback}
         mode={mode}
       />
     </ModalContext.Provider>
@@ -127,6 +216,9 @@ export const CategoryModalProvider = ({ children }) => {
   const [title, setTitle] = useState("Default Title");
   const [content, setContent] = useState("Default Content");
   const [mode, setMode] = useState("add");
+  const [handleCallback, setHandleCallback] = useState();
+  const [handleDelete, setHandleDelete] = useState();
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -139,6 +231,8 @@ export const CategoryModalProvider = ({ children }) => {
         setContent,
         setMode,
         setDropdownCategories,
+        setHandleCallback,
+        setHandleDelete,
       }}
     >
       {children}
@@ -148,6 +242,8 @@ export const CategoryModalProvider = ({ children }) => {
         open={open}
         handleClose={handleClose}
         handleSubmit={handleSubmit}
+        handleDelete={handleDelete}
+        handleCallback={handleCallback}
         mode={mode}
       />
     </ModalContext.Provider>

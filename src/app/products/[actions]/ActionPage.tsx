@@ -10,20 +10,10 @@ import {
   productConnectedEntities,
 } from "@/services/ProductService";
 import { DtoContext } from "@/app/context/DataProvider";
-import {
-  CategoryT,
-  ClientTypeT,
-  ColorT,
-  DataState,
-  Product,
-  SizeT,
-  SupplierT,
-  TagT,
-} from "@/Type/type";
-import ImagesComponent, {
-  handleFetchAndResizeImage,
-} from "@/app/products/(components)/Images";
+import { DataState, Product } from "@/Type/type";
+import ImagesComponent from "@/app/products/(components)/Images";
 import Loading from "@/components/Loading";
+import { AnnounceModalProvider } from "@/app/context/ModalContext";
 
 export const target = [
   "product_name",
@@ -40,26 +30,27 @@ export const target = [
 const ActionPage = () => {
   const pathname = usePathname();
   const [descriptionInput, setDescriptionInput] = useState("");
-  const [resizedImage, setResizedImage] = useState([]);
+  const [serverFetchImageUrl, setServerFetchImageUrl] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [imageLoading, setImageLoading] = useState(false);
   const [reloadFlag, setReloadFlag] = useState(false);
   const params = useSearchParams();
+  const [isDataProductLoaded, setIsDataProductLoaded] = useState(false);
+
   // @ts-ignore
-  const { setDto, updateState, handleSubmit, resizeAction } =
-    useContext(DtoContext);
+  const { setDto, updateState, handleSubmit } = useContext(DtoContext);
   // Data fetched from server
   const [productById, setDataProduct] = useState<Product>({
-    productId: 0,
+    id: 0,
     productName: "",
     price: 0,
     stockQuantity: 0,
-    category: 0,
+    categoryId: 0,
     colors: [],
     sizes: [],
     tags: [],
     clientTypes: [],
-    supplier: 0,
+    supplierId: 0,
     description: "",
   });
   const [data, setData] = useState<DataState>({
@@ -85,36 +76,19 @@ const ActionPage = () => {
       const response = await productConnectedEntities();
       try {
         setData({
-          categories: response?.categories.map((item: CategoryT) => ({
-            id: item.id,
-            name: item.categoryName,
-          })),
-          colors: response?.colors.map((item: ColorT) => ({
-            id: item.id,
-            name: item.colorName,
-          })),
-          sizes: response?.sizes.map((item: SizeT) => ({
-            id: item.id,
-            name: item.sizeValue,
-          })),
-          tags: response?.tags.map((item: TagT) => ({
-            id: item.id,
-            name: item.tagName,
-          })),
-          clientTypes: response?.clientTypes.map((item: ClientTypeT) => ({
-            id: item.id,
-            name: item.typeName,
-          })),
-          suppliers: response?.suppliers.map((item: SupplierT) => ({
-            id: item.id,
-            name: item.supplierName,
-          })),
+          categories: response?.categories,
+          colors: response?.colors,
+          sizes: response?.sizes,
+          tags: response?.tags,
+          clientTypes: response?.clientTypes,
+          suppliers: response?.suppliers,
         });
       } catch (err) {
         console.log(err);
       }
     };
     fetchData();
+    setIsDataProductLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -122,37 +96,35 @@ const ActionPage = () => {
       const productId = params.get("productId");
       const fetchProduct = async () => {
         const response = await getProductById(productId);
-        setDto(response.data);
+        // setDto(response.data);
         setDataProduct(await response?.data);
       };
       fetchProduct();
     }
   }, [params, pathname, setDto]);
 
+  // one product
   useEffect(() => {
     const productId = params.get("productId");
     const fetchImagesData = async () => {
       // oldImages [keys, urls]
+      setImageLoading(true);
       const oldImages = await fetchImages(productId);
-      if (oldImages.success) {
-        const data = oldImages.data;
-        if (data) {
-          // @ts-ignore
-          data.forEach((imageUrl) => {
-            // @ts-ignore
-            handleFetchAndResizeImage(
-              imageUrl,
-              setResizedImage,
-              setImageLoading,
-            );
-          });
-        }
+      if (oldImages.success && oldImages.data?.length > 0) {
+        setServerFetchImageUrl(oldImages.data);
       }
+      setImageLoading(false);
     };
     setLoading(true);
     fetchImagesData();
     setLoading(false);
   }, [reloadFlag, params]);
+
+  useEffect(() => {
+    if (productById.description)
+      updateState({ field: "description", value: productById.description });
+  }, [productById.description]);
+
   const pathSegments = pathname.split("/");
   const modeName = pathSegments.pop();
   return (
@@ -177,100 +149,97 @@ const ActionPage = () => {
                   }
             }
           >
-            <div className="-mx-3 mb-6 flex flex-wrap gap-y-3">
-              {/*Product name*/}
-              <InputRendered
-                title={"productName"}
-                modeName={"add"}
-                showTitle={"product name"}
-                defaultValue={productById.productName}
-              />
-              {/*price*/}
-              <InputRendered
-                title={"price"}
-                modeName={"add"}
-                showTitle={"price"}
-                defaultValue={productById.price}
-              />
-              {/*Stock quantity*/}
-              <InputRendered
-                title={"stockQuantity"}
-                modeName={"add"}
-                showTitle={"stock quantity"}
-                defaultValue={productById.stockQuantity}
-              />
+            {!isDataProductLoaded ? (
+              <Loading />
+            ) : (
+              <div className="-mx-3 mb-6 flex flex-wrap gap-y-3">
+                {/*Product name*/}
+                <InputRendered
+                  title={"productName"}
+                  modeName={"add"}
+                  showTitle={"product name"}
+                  defaultValue={productById.productName}
+                />
+                {/*price*/}
+                <InputRendered
+                  title={"price"}
+                  modeName={"add"}
+                  showTitle={"price"}
+                  defaultValue={productById.price}
+                />
+                {/*Stock quantity*/}
+                <InputRendered
+                  title={"stockQuantity"}
+                  modeName={"add"}
+                  showTitle={"stock quantity"}
+                  defaultValue={productById.stockQuantity}
+                />
 
-              {/* categories */}
-              <DropdownRendered
-                props={data?.categories}
-                title={"category"}
-                showTitle={"category"}
-                defaultValue={productById.category}
-              />
-              {/* supplier */}
-              <DropdownRendered
-                props={data?.suppliers}
-                title={"supplier"}
-                showTitle={"supplier"}
-                defaultValue={productById.supplier}
-              />
+                {/* categories */}
+                <DropdownRendered
+                  props={data?.categories}
+                  field={"categoryId"}
+                  showTitle={"category"}
+                  defaultValue={productById.categoryId}
+                />
+                {/* supplier */}
+                <DropdownRendered
+                  props={data?.suppliers}
+                  field={"supplierId"}
+                  showTitle={"supplier"}
+                  defaultValue={productById.supplierId}
+                />
 
-              {/*colors */}
-              <CheckboxesTags
-                props={data?.colors}
-                title={"colors"}
-                showTitle={"colors"}
-                defaultValue={productById.colors.map((color) => ({
-                  id: color.id,
-                  name: color.colorName,
-                }))}
-              />
+                {/*colors */}
+                <CheckboxesTags
+                  props={data?.colors}
+                  title={"colors"}
+                  showTitle={"colors"}
+                  isDataLoaded={isDataProductLoaded}
+                  defaultValue={productById.colors}
+                />
 
-              {/*/!* sizes *!/*/}
+                {/*/!* sizes *!/*/}
 
-              <CheckboxesTags
-                props={data?.sizes}
-                title={"sizes"}
-                showTitle={"sizes"}
-                defaultValue={productById.sizes.map((size) => ({
-                  id: size.id,
-                  name: size.sizeValue,
-                }))}
-              />
+                <CheckboxesTags
+                  props={data?.sizes}
+                  title={"sizes"}
+                  showTitle={"sizes"}
+                  isDataLoaded={isDataProductLoaded}
+                  defaultValue={productById.sizes}
+                />
 
-              {/*/!* tags *!/*/}
-              <CheckboxesTags
-                props={data?.tags}
-                title={"tags"}
-                showTitle={"tags"}
-                defaultValue={productById.tags.map((tag) => ({
-                  id: tag.id,
-                  name: tag.tagName,
-                }))}
-              />
-
-              {/*/!* client type *!/*/}
-              <CheckboxesTags
-                props={data?.clientTypes}
-                title={"clientTypes"}
-                showTitle={"client Types"}
-                defaultValue={productById.clientTypes.map((clientT) => ({
-                  id: clientT.id,
-                  name: clientT.typeName,
-                }))}
-              />
-            </div>
+                {/*/!* tags *!/*/}
+                <CheckboxesTags
+                  props={data?.tags}
+                  title={"tags"}
+                  showTitle={"tags"}
+                  isDataLoaded={isDataProductLoaded}
+                  defaultValue={productById.tags}
+                />
+                {/*/!* client type *!/*/}
+                <CheckboxesTags
+                  props={data?.clientTypes}
+                  title={"clientTypes"}
+                  showTitle={"client Types"}
+                  isDataLoaded={isDataProductLoaded}
+                  defaultValue={productById.clientTypes}
+                />
+              </div>
+            )}
 
             {/*Images.jsx*/}
             {loading ? (
               <Loading />
             ) : (
-              <ImagesComponent
-                imageLoading={imageLoading}
-                resizedImage={resizedImage}
-                setReloadFlag={setReloadFlag}
-                productId={params.get("productId")}
-              />
+              <AnnounceModalProvider>
+                <ImagesComponent
+                  imageLoading={imageLoading}
+                  serverImageUrl={serverFetchImageUrl}
+                  setReloadFlag={setReloadFlag}
+                  targetId={params.get("productId")}
+                />
+              </AnnounceModalProvider>
             )}
             {/*Description*/}
             <div className="-mx-3 mb-2 flex flex-wrap">
